@@ -1,0 +1,528 @@
+/**
+ * AICO Smart Home - Main Styles
+ *
+ * Premium styling for ultra-luxury interface.
+ */
+
+/* ============================================================================
+   CSS Variables
+   ============================================================================ */
+
+:root {
+  --color-primary: #00d4aa;
+  --color-primary-light: #4eecc4;
+  --color-primary-dark: #00a080;
+  --color-secondary: #6366f1;
+  --color-accent: #f59e0b;
+
+  --color-background: #0a0a12;
+  --color-background-elevated: #12121c;
+  --color-surface: #1a1a28;
+  --color-surface-hover: #222234;
+
+  --color-text: #ffffff;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted: #606070;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  --color-border: #2a2a3c;
+
+  --font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  --transition-duration: 300ms;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --blur-sm: 4px;
+  --blur-md: 12px;
+  --blur-lg: 24px;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 20px rgba(0, 200, 150, 0.3);
+}
+
+/* ============================================================================
+   Reset & Base
+   ============================================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   App Layout
+   ============================================================================ */
+
+.aico-app {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+  transition: opacity var(--transition-duration) var(--transition-easing);
+}
+
+.app-container.transitioning {
+  opacity: 0.9;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.app-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: linear-gradient(180deg, var(--color-background-elevated) 0%, transparent 100%);
+  z-index: 100;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--color-primary);
+}
+
+.time-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-display .time {
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-display .date {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.weather-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weather-display .temperature {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.weather-display .condition {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+}
+
+.user-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+}
+
+.user-status.identified {
+  background: rgba(0, 212, 170, 0.15);
+  color: var(--color-primary);
+}
+
+.residence-mode {
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.residence-mode.mode-emergency,
+.residence-mode.mode-lockdown {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--color-error);
+  animation: pulse 2s infinite;
+}
+
+/* ============================================================================
+   Main Content
+   ============================================================================ */
+
+.app-main {
+  display: contents;
+}
+
+.digital-twin-container {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  background: var(--color-background);
+}
+
+/* ============================================================================
+   Sidebar
+   ============================================================================ */
+
+.app-sidebar {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-background-elevated);
+  border-left: 1px solid var(--color-border);
+  overflow-y: auto;
+}
+
+.app-sidebar h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+/* Quick Scenes */
+.quick-scenes .scenes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.scene-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-duration) var(--transition-easing);
+}
+
+.scene-button:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.scene-button:active {
+  transform: scale(0.95);
+}
+
+.scene-icon {
+  font-size: 1.5rem;
+}
+
+.scene-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Climate Summary */
+.climate-summary .climate-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.climate-summary .stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.stat-label {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.stat-value {
+  font-weight: 500;
+}
+
+.stat-value.good {
+  color: var(--color-success);
+}
+
+/* Recent Activity */
+.activity-list {
+  list-style: none;
+}
+
+.activity-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.activity-text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   Footer / Navigation
+   ============================================================================ */
+
+.app-footer {
+  grid-column: 1 / -1;
+  background: var(--color-background-elevated);
+  border-top: 1px solid var(--color-border);
+}
+
+.main-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-duration) var(--transition-easing);
+}
+
+.nav-item:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.nav-item.active {
+  background: rgba(0, 212, 170, 0.15);
+  color: var(--color-primary);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Loading Screen
+   ============================================================================ */
+
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+  z-index: 9999;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.loading-logo {
+  width: 80px;
+  height: 80px;
+  color: var(--color-primary);
+}
+
+.logo-svg {
+  width: 100%;
+  height: 100%;
+  animation: rotate 20s linear infinite;
+}
+
+.loading-text {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--color-text);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   3D Container Styles
+   ============================================================================ */
+
+.digital-twin-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.room-label {
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+/* ============================================================================
+   Scrollbar
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 1280px) {
+  .app-container {
+    grid-template-columns: 1fr 280px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-header {
+    padding: 0.75rem 1rem;
+  }
+}
