@@ -1,22 +1,36 @@
 /**
  * AICO Smart Home - Digital Twin Component
  *
- * Main 3D visualization component for the residence digital twin.
+ * Ultra-luxury 3D visualization with photorealistic rendering,
+ * HDRI environment, PBR materials, and cinematic post-processing.
  */
 
-import React, { Suspense, useRef, useEffect, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { Suspense, useRef, useMemo } from 'react';
+import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import {
   OrbitControls,
   PerspectiveCamera,
   Environment,
   ContactShadows,
   Html,
-  useGLTF,
-  Bounds,
-  useBounds,
+  Float,
+  MeshReflectorMaterial,
+  Sparkles,
+  Stars,
+  Sky,
+  Lightformer,
 } from '@react-three/drei';
-import { EffectComposer, Bloom, SSAO, Vignette } from '@react-three/postprocessing';
+import {
+  EffectComposer,
+  Bloom,
+  SSAO,
+  Vignette,
+  ChromaticAberration,
+  DepthOfField,
+  Noise,
+  ToneMapping,
+} from '@react-three/postprocessing';
+import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
 import { useSceneStore } from '../scene-manager';
 import type { SceneNode, QualityLevel } from '../types';
@@ -31,6 +45,7 @@ interface DigitalTwinProps {
   onDeviceClick?: (deviceId: DeviceId) => void;
   onRoomClick?: (roomId: RoomId) => void;
   onFloorClick?: (floorId: FloorId) => void;
+  blurred?: boolean;
 }
 
 export const DigitalTwin: React.FC<DigitalTwinProps> = ({
@@ -38,6 +53,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({
   onDeviceClick,
   onRoomClick,
   onFloorClick,
+  blurred = false,
 }) => {
   const { scene, camera, quality, updatePerformanceMetrics } = useSceneStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,21 +61,39 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({
   const qualitySettings = getQualitySettings(quality);
 
   return (
-    <div className={`digital-twin-container ${className ?? ''}`}>
+    <div
+      className={`digital-twin-wrapper ${className ?? ''}`}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        transition: 'filter 0.5s ease-out',
+        filter: blurred ? 'blur(8px) brightness(0.7)' : 'none',
+      }}
+    >
       <Canvas
         ref={canvasRef}
-        shadows={qualitySettings.shadows}
+        shadows={qualitySettings.shadows ? 'soft' : false}
         dpr={qualitySettings.dpr}
         gl={{
           antialias: qualitySettings.antialias,
           powerPreference: 'high-performance',
-          alpha: false,
+          alpha: true,
+          stencil: false,
+          depth: true,
         }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1;
+          gl.toneMappingExposure = 1.1;
+          gl.outputColorSpace = THREE.SRGBColorSpace;
         }}
+        style={{ background: 'transparent' }}
       >
+        <color attach="background" args={['#050508']} />
+
+        {/* Ambient fog for depth */}
+        <fog attach="fog" args={['#050508', 30, 100]} />
+
         <Suspense fallback={<LoadingIndicator />}>
           <SceneContent
             onDeviceClick={onDeviceClick}
@@ -69,13 +103,24 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({
         </Suspense>
 
         {qualitySettings.postProcessing && (
-          <PostProcessingEffects quality={quality} />
+          <LuxuryPostProcessing quality={quality} />
         )}
 
         <PerformanceMonitor onMetrics={updatePerformanceMetrics} />
       </Canvas>
 
-      <OverlayContainer />
+      {/* Overlay gradient for depth */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '30%',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 };
@@ -106,42 +151,167 @@ const SceneContent: React.FC<SceneContentProps> = ({
       {/* Camera */}
       <CameraController camera={camera} />
 
-      {/* Lighting */}
-      <SceneLighting />
+      {/* Premium Lighting Setup */}
+      <LuxuryLighting />
 
-      {/* Environment */}
-      <Environment preset="apartment" />
+      {/* HDRI Environment */}
+      <Environment
+        preset="night"
+        background={false}
+        blur={0.5}
+      >
+        {/* Custom light formers for architectural look */}
+        <Lightformer
+          intensity={2}
+          rotation-x={Math.PI / 2}
+          position={[0, 5, -9]}
+          scale={[10, 10, 1]}
+          color="#00d4aa"
+        />
+        <Lightformer
+          intensity={1}
+          rotation-y={Math.PI / 2}
+          position={[-5, 1, -1]}
+          scale={[20, 0.1, 1]}
+          color="#0066ff"
+        />
+        <Lightformer
+          intensity={0.5}
+          rotation-y={-Math.PI / 2}
+          position={[10, 1, 0]}
+          scale={[20, 1, 1]}
+          color="#c9a962"
+        />
+      </Environment>
 
-      {/* Ground */}
-      <ContactShadows
-        position={[0, -0.01, 0]}
-        opacity={0.5}
+      {/* Reflective Floor */}
+      <ReflectiveGround />
+
+      {/* Ambient Particles */}
+      <Sparkles
+        count={100}
         scale={40}
-        blur={1}
-        far={10}
+        size={2}
+        speed={0.3}
+        opacity={0.3}
+        color="#00d4aa"
       />
 
       {/* Scene Graph */}
-      <Bounds fit clip observe margin={1.2}>
-        <SceneGraph
-          node={scene.rootNode}
-          floorNavigation={floorNavigation}
-          roomNavigation={roomNavigation}
-          interaction={interaction}
-          onDeviceClick={onDeviceClick}
-          onRoomClick={onRoomClick}
-          onFloorClick={onFloorClick}
-        />
-      </Bounds>
+      <SceneGraph
+        node={scene.rootNode}
+        floorNavigation={floorNavigation}
+        roomNavigation={roomNavigation}
+        interaction={interaction}
+        onDeviceClick={onDeviceClick}
+        onRoomClick={onRoomClick}
+        onFloorClick={onFloorClick}
+      />
 
       {/* State Visualizations */}
       <StateVisualizations />
-
-      {/* Grid Helper (dev mode) */}
-      {process.env.NODE_ENV === 'development' && (
-        <gridHelper args={[50, 50, '#333', '#222']} />
-      )}
     </>
+  );
+};
+
+// ============================================================================
+// Premium Lighting Setup
+// ============================================================================
+
+const LuxuryLighting: React.FC = () => {
+  const mainLightRef = useRef<THREE.DirectionalLight>(null);
+
+  // Subtle animation for main light
+  useFrame(({ clock }) => {
+    if (mainLightRef.current) {
+      mainLightRef.current.intensity = 1.2 + Math.sin(clock.elapsedTime * 0.5) * 0.1;
+    }
+  });
+
+  return (
+    <>
+      {/* Ambient - very subtle */}
+      <ambientLight intensity={0.15} color="#1a1a2e" />
+
+      {/* Key Light - warm architectural */}
+      <directionalLight
+        ref={mainLightRef}
+        position={[15, 25, 15]}
+        intensity={1.2}
+        color="#fff5e6"
+        castShadow
+        shadow-mapSize={[4096, 4096]}
+        shadow-camera-far={60}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
+        shadow-bias={-0.0001}
+        shadow-normalBias={0.02}
+      />
+
+      {/* Fill Light - cool blue */}
+      <directionalLight
+        position={[-10, 10, -10]}
+        intensity={0.4}
+        color="#4169e1"
+      />
+
+      {/* Rim Light - teal accent */}
+      <directionalLight
+        position={[0, 5, -15]}
+        intensity={0.3}
+        color="#00d4aa"
+      />
+
+      {/* Ground bounce light */}
+      <hemisphereLight
+        color="#1a1a2e"
+        groundColor="#0a0a12"
+        intensity={0.3}
+      />
+
+      {/* Accent point lights */}
+      <pointLight
+        position={[10, 2, 0]}
+        intensity={0.5}
+        color="#00d4aa"
+        distance={15}
+        decay={2}
+      />
+      <pointLight
+        position={[-10, 2, 5]}
+        intensity={0.3}
+        color="#c9a962"
+        distance={15}
+        decay={2}
+      />
+    </>
+  );
+};
+
+// ============================================================================
+// Reflective Ground Plane
+// ============================================================================
+
+const ReflectiveGround: React.FC = () => {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+      <planeGeometry args={[100, 100]} />
+      <MeshReflectorMaterial
+        blur={[400, 100]}
+        resolution={1024}
+        mixBlur={1}
+        mixStrength={15}
+        roughness={0.9}
+        depthScale={1.2}
+        minDepthThreshold={0.4}
+        maxDepthThreshold={1.4}
+        color="#050508"
+        metalness={0.8}
+        mirror={0.5}
+      />
+    </mesh>
   );
 };
 
@@ -154,7 +324,7 @@ interface CameraControllerProps {
 }
 
 const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
-  const { setCamera, setCameraMode } = useSceneStore();
+  const { setCamera } = useSceneStore();
   const controlsRef = useRef<any>(null);
 
   return (
@@ -163,8 +333,8 @@ const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
         makeDefault
         position={[camera.position.x, camera.position.y, camera.position.z]}
         fov={camera.fov}
-        near={camera.near}
-        far={camera.far}
+        near={0.1}
+        far={1000}
       />
 
       <OrbitControls
@@ -176,10 +346,12 @@ const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
         maxPolarAngle={camera.constraints.maxPolarAngle}
         enableDamping
         dampingFactor={0.05}
-        rotateSpeed={0.5}
-        panSpeed={0.5}
-        zoomSpeed={0.5}
-        onChange={(e) => {
+        rotateSpeed={0.4}
+        panSpeed={0.4}
+        zoomSpeed={0.6}
+        enablePan
+        screenSpacePanning
+        onChange={() => {
           if (controlsRef.current) {
             const { x, y, z } = controlsRef.current.object.position;
             setCamera({ position: { x, y, z } });
@@ -191,44 +363,74 @@ const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
 };
 
 // ============================================================================
-// Scene Lighting
+// Luxury Post Processing
 // ============================================================================
 
-const SceneLighting: React.FC = () => {
+interface LuxuryPostProcessingProps {
+  quality: QualityLevel;
+}
+
+const LuxuryPostProcessing: React.FC<LuxuryPostProcessingProps> = ({ quality }) => {
+  const settings = getQualitySettings(quality);
+
   return (
-    <>
-      {/* Ambient */}
-      <ambientLight intensity={0.3} color="#ffffff" />
-
-      {/* Key Light (Sun) */}
-      <directionalLight
-        position={[10, 20, 10]}
-        intensity={1}
-        color="#fffaf0"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-far={50}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={20}
-        shadow-camera-bottom={-20}
-        shadow-bias={-0.0001}
+    <EffectComposer multisampling={settings.antialias ? 8 : 0}>
+      {/* Bloom - key for luxury glow effect */}
+      <Bloom
+        intensity={0.8}
+        luminanceThreshold={0.6}
+        luminanceSmoothing={0.9}
+        mipmapBlur
+        radius={0.8}
       />
 
-      {/* Fill Light */}
-      <directionalLight
-        position={[-5, 5, -5]}
-        intensity={0.3}
-        color="#b0c4de"
+      {/* SSAO - subtle depth in corners */}
+      {settings.ssao && (
+        <SSAO
+          radius={0.4}
+          intensity={30}
+          luminanceInfluence={0.6}
+          samples={settings.ssaoSamples}
+          worldDistanceThreshold={1}
+          worldDistanceFalloff={0.1}
+          worldProximityThreshold={0.5}
+          worldProximityFalloff={0.5}
+        />
+      )}
+
+      {/* Depth of Field - cinematic */}
+      {settings.dof && (
+        <DepthOfField
+          focusDistance={0.02}
+          focalLength={0.05}
+          bokehScale={4}
+        />
+      )}
+
+      {/* Chromatic Aberration - subtle edge effect */}
+      <ChromaticAberration
+        offset={[0.0005, 0.0005]}
+        blendFunction={BlendFunction.NORMAL}
+        radialModulation={true}
+        modulationOffset={0.5}
       />
 
-      {/* Rim Light */}
-      <directionalLight
-        position={[0, 5, -10]}
-        intensity={0.2}
-        color="#4169e1"
+      {/* Vignette - darker edges */}
+      <Vignette
+        offset={0.3}
+        darkness={0.6}
+        blendFunction={BlendFunction.NORMAL}
       />
-    </>
+
+      {/* Film grain - subtle texture */}
+      <Noise
+        opacity={0.03}
+        blendFunction={BlendFunction.OVERLAY}
+      />
+
+      {/* Tone mapping */}
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+    </EffectComposer>
   );
 };
 
@@ -260,7 +462,6 @@ const SceneGraph: React.FC<SceneGraphProps> = ({
   const isSelected = interaction.selectedNodes.includes(node.id);
   const isHovered = interaction.hoveredNode === node.id;
 
-  // Calculate visibility and opacity based on navigation state
   const { visible, opacity } = calculateNodeVisibility(
     node,
     floorNavigation,
@@ -301,7 +502,6 @@ const SceneGraph: React.FC<SceneGraphProps> = ({
         node.transform.scale.z,
       ]}
     >
-      {/* Node Content */}
       <NodeContent
         node={node}
         opacity={opacity}
@@ -313,7 +513,6 @@ const SceneGraph: React.FC<SceneGraphProps> = ({
         onPointerOut={() => setHoveredNode(null)}
       />
 
-      {/* Children */}
       {node.children.map(child => (
         <SceneGraph
           key={child.id}
@@ -358,7 +557,7 @@ const NodeContent: React.FC<NodeContentProps> = ({
   switch (node.type) {
     case 'room':
       return (
-        <RoomMesh
+        <PBRRoomMesh
           node={node}
           opacity={opacity}
           isSelected={isSelected}
@@ -372,7 +571,7 @@ const NodeContent: React.FC<NodeContentProps> = ({
 
     case 'device':
       return (
-        <DeviceMesh
+        <PBRDeviceMesh
           node={node}
           opacity={opacity}
           isSelected={isSelected}
@@ -385,7 +584,7 @@ const NodeContent: React.FC<NodeContentProps> = ({
 
     case 'floor':
       return (
-        <FloorMesh
+        <PBRFloorMesh
           node={node}
           opacity={opacity}
           isSelected={isSelected}
@@ -399,10 +598,10 @@ const NodeContent: React.FC<NodeContentProps> = ({
 };
 
 // ============================================================================
-// Room Mesh
+// PBR Room Mesh
 // ============================================================================
 
-interface RoomMeshProps {
+interface PBRRoomMeshProps {
   node: SceneNode;
   opacity: number;
   isSelected: boolean;
@@ -413,7 +612,7 @@ interface RoomMeshProps {
   onPointerOut: () => void;
 }
 
-const RoomMesh: React.FC<RoomMeshProps> = ({
+const PBRRoomMesh: React.FC<PBRRoomMeshProps> = ({
   node,
   opacity,
   isSelected,
@@ -423,64 +622,117 @@ const RoomMesh: React.FC<RoomMeshProps> = ({
   onPointerOver,
   onPointerOut,
 }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
   const deviceStates = useSceneStore(state => state.deviceStates);
   const roomId = node.metadata.roomId as RoomId;
 
-  // Get room color based on state (temperature, etc.)
+  // Animate selection glow
+  useFrame(({ clock }) => {
+    if (meshRef.current && (isSelected || isHovered)) {
+      const material = meshRef.current.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 3) * 0.1;
+    }
+  });
+
   const roomColor = getRoomColor(roomId, deviceStates);
 
   return (
     <group>
-      {/* Room floor */}
+      {/* Room floor - PBR material */}
       <mesh
+        ref={meshRef}
         receiveShadow
+        castShadow
         onClick={interactive ? onClick : undefined}
         onPointerOver={interactive ? onPointerOver : undefined}
         onPointerOut={interactive ? onPointerOut : undefined}
       >
-        <boxGeometry args={[5, 0.1, 5]} />
+        <boxGeometry args={[5, 0.15, 5]} />
         <meshStandardMaterial
           color={roomColor}
           transparent
-          opacity={opacity * 0.8}
-          emissive={isSelected ? '#00ff88' : isHovered ? '#4488ff' : '#000000'}
+          opacity={opacity * 0.9}
+          roughness={0.4}
+          metalness={0.1}
+          envMapIntensity={0.8}
+          emissive={isSelected ? '#00d4aa' : isHovered ? '#0066ff' : '#000000'}
           emissiveIntensity={isSelected || isHovered ? 0.2 : 0}
         />
       </mesh>
 
-      {/* Room walls (wireframe outline) */}
-      <mesh>
+      {/* Room walls - glass-like material */}
+      <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[5, 3, 5]} />
-        <meshBasicMaterial
-          color="#ffffff"
+        <meshPhysicalMaterial
+          color="#1a1a2e"
           transparent
-          opacity={opacity * 0.1}
-          wireframe
+          opacity={opacity * 0.15}
+          roughness={0.1}
+          metalness={0}
+          transmission={0.9}
+          thickness={0.5}
+          envMapIntensity={0.5}
+          side={THREE.BackSide}
         />
       </mesh>
 
+      {/* Edge glow for selected/hovered */}
+      {(isSelected || isHovered) && (
+        <mesh position={[0, 0.01, 0]}>
+          <boxGeometry args={[5.1, 0.02, 5.1]} />
+          <meshBasicMaterial
+            color={isSelected ? '#00d4aa' : '#0066ff'}
+            transparent
+            opacity={0.6}
+          />
+        </mesh>
+      )}
+
       {/* Room label */}
-      <Html
-        position={[0, 2, 0]}
-        center
-        style={{
-          opacity: opacity,
-          pointerEvents: 'none',
-        }}
-      >
-        <div className="room-label">
-          <span className="room-name">{node.name}</span>
-        </div>
-      </Html>
+      <Float speed={2} floatIntensity={0.3}>
+        <Html
+          position={[0, 2.5, 0]}
+          center
+          distanceFactor={15}
+          style={{
+            opacity: opacity,
+            pointerEvents: 'none',
+            transition: 'opacity 0.3s ease',
+          }}
+        >
+          <div
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+            }}
+          >
+            <span
+              style={{
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              {node.name}
+            </span>
+          </div>
+        </Html>
+      </Float>
     </group>
   );
 };
 
 // ============================================================================
-// Device Mesh
+// PBR Device Mesh
 // ============================================================================
 
-interface DeviceMeshProps {
+interface PBRDeviceMeshProps {
   node: SceneNode;
   opacity: number;
   isSelected: boolean;
@@ -490,7 +742,7 @@ interface DeviceMeshProps {
   onPointerOut: () => void;
 }
 
-const DeviceMesh: React.FC<DeviceMeshProps> = ({
+const PBRDeviceMesh: React.FC<PBRDeviceMeshProps> = ({
   node,
   opacity,
   isSelected,
@@ -499,66 +751,102 @@ const DeviceMesh: React.FC<DeviceMeshProps> = ({
   onPointerOver,
   onPointerOut,
 }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   const deviceStates = useSceneStore(state => state.deviceStates);
   const deviceId = node.metadata.deviceId as DeviceId;
   const deviceState = deviceStates.get(deviceId);
 
   const isOn = deviceState?.values?.on === true;
-  const color = isOn ? '#00ff88' : '#666666';
+  const color = isOn ? '#00d4aa' : '#3a3a5c';
+
+  // Animate glow
+  useFrame(({ clock }) => {
+    if (glowRef.current && isOn) {
+      glowRef.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.1);
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.3 + Math.sin(clock.elapsedTime * 4) * 0.15;
+    }
+  });
 
   return (
-    <group>
-      <mesh
-        castShadow
-        onClick={onClick}
-        onPointerOver={onPointerOver}
-        onPointerOut={onPointerOut}
-      >
-        <sphereGeometry args={[0.2, 16, 16]} />
-        <meshStandardMaterial
-          color={color}
-          transparent
-          opacity={opacity}
-          emissive={isSelected ? '#ffffff' : isHovered ? '#4488ff' : color}
-          emissiveIntensity={isOn ? 0.5 : 0.1}
-        />
-      </mesh>
-
-      {/* Device indicator ring */}
-      {isOn && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.3, 0.35, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={0.5} />
+    <Float speed={3} floatIntensity={isOn ? 0.2 : 0.05}>
+      <group>
+        {/* Device sphere - metallic PBR */}
+        <mesh
+          ref={meshRef}
+          castShadow
+          onClick={onClick}
+          onPointerOver={onPointerOver}
+          onPointerOut={onPointerOut}
+        >
+          <sphereGeometry args={[0.25, 32, 32]} />
+          <meshStandardMaterial
+            color={color}
+            transparent
+            opacity={opacity}
+            roughness={0.2}
+            metalness={0.8}
+            envMapIntensity={1}
+            emissive={color}
+            emissiveIntensity={isOn ? 0.5 : 0.05}
+          />
         </mesh>
-      )}
-    </group>
+
+        {/* Outer glow when on */}
+        {isOn && (
+          <mesh ref={glowRef} scale={1.5}>
+            <sphereGeometry args={[0.25, 16, 16]} />
+            <meshBasicMaterial
+              color={color}
+              transparent
+              opacity={0.3}
+              side={THREE.BackSide}
+            />
+          </mesh>
+        )}
+
+        {/* Selection ring */}
+        {(isSelected || isHovered) && (
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
+            <ringGeometry args={[0.35, 0.4, 32]} />
+            <meshBasicMaterial
+              color={isSelected ? '#00d4aa' : '#0066ff'}
+              transparent
+              opacity={0.8}
+            />
+          </mesh>
+        )}
+      </group>
+    </Float>
   );
 };
 
 // ============================================================================
-// Floor Mesh
+// PBR Floor Mesh
 // ============================================================================
 
-interface FloorMeshProps {
+interface PBRFloorMeshProps {
   node: SceneNode;
   opacity: number;
   isSelected: boolean;
   isHovered: boolean;
 }
 
-const FloorMesh: React.FC<FloorMeshProps> = ({
+const PBRFloorMesh: React.FC<PBRFloorMeshProps> = ({
   node,
   opacity,
-  isSelected,
-  isHovered,
 }) => {
   return (
     <mesh receiveShadow position={[0, -0.05, 0]}>
-      <boxGeometry args={[20, 0.1, 20]} />
+      <boxGeometry args={[25, 0.1, 25]} />
       <meshStandardMaterial
-        color="#2a2a3e"
+        color="#12121a"
         transparent
-        opacity={opacity * 0.5}
+        opacity={opacity * 0.8}
+        roughness={0.7}
+        metalness={0.2}
+        envMapIntensity={0.3}
       />
     </mesh>
   );
@@ -585,7 +873,6 @@ interface VisualizationRendererProps {
 }
 
 const VisualizationRenderer: React.FC<VisualizationRendererProps> = ({ visualization }) => {
-  // Render different visualization types
   switch (visualization.type) {
     case 'temperature_gradient':
       return <TemperatureGradientVisualization config={visualization.config} />;
@@ -596,47 +883,8 @@ const VisualizationRenderer: React.FC<VisualizationRendererProps> = ({ visualiza
   }
 };
 
-const TemperatureGradientVisualization: React.FC<{ config: any }> = ({ config }) => {
-  // Temperature gradient overlay implementation
-  return null;
-};
-
-const OccupancyHeatmapVisualization: React.FC<{ config: any }> = ({ config }) => {
-  // Occupancy heatmap implementation
-  return null;
-};
-
-// ============================================================================
-// Post Processing Effects
-// ============================================================================
-
-interface PostProcessingEffectsProps {
-  quality: QualityLevel;
-}
-
-const PostProcessingEffects: React.FC<PostProcessingEffectsProps> = ({ quality }) => {
-  const settings = getQualitySettings(quality);
-
-  return (
-    <EffectComposer>
-      <Bloom
-        intensity={0.5}
-        luminanceThreshold={0.8}
-        luminanceSmoothing={0.9}
-        height={settings.bloomResolution}
-      />
-      {settings.ssao && (
-        <SSAO
-          radius={0.5}
-          intensity={0.5}
-          luminanceInfluence={0.5}
-          samples={settings.ssaoSamples}
-        />
-      )}
-      <Vignette offset={0.3} darkness={0.4} />
-    </EffectComposer>
-  );
-};
+const TemperatureGradientVisualization: React.FC<{ config: any }> = () => null;
+const OccupancyHeatmapVisualization: React.FC<{ config: any }> = () => null;
 
 // ============================================================================
 // Performance Monitor
@@ -649,7 +897,7 @@ interface PerformanceMonitorProps {
 const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onMetrics }) => {
   const { gl } = useThree();
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const fps = Math.round(1 / delta);
     const drawCalls = gl.info.render.calls;
     onMetrics(fps, drawCalls);
@@ -664,57 +912,58 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onMetrics }) =>
 
 const LoadingIndicator: React.FC = () => (
   <Html center>
-    <div className="loading-indicator">
-      <div className="spinner" />
-      <span>Loading 3D Model...</span>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '16px',
+        padding: '32px',
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '20px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+      }}
+    >
+      <div
+        style={{
+          width: '48px',
+          height: '48px',
+          border: '3px solid rgba(255, 255, 255, 0.1)',
+          borderTopColor: '#00d4aa',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }}
+      />
+      <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
+        Loading Digital Twin...
+      </span>
     </div>
   </Html>
 );
 
 const EmptyScene: React.FC = () => (
   <>
-    <ambientLight intensity={0.5} />
+    <ambientLight intensity={0.3} />
+    <Stars radius={100} depth={50} count={3000} factor={4} fade speed={1} />
     <Html center>
-      <div className="empty-scene">
-        <span>No residence loaded</span>
+      <div
+        style={{
+          padding: '32px 48px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          textAlign: 'center',
+        }}
+      >
+        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>
+          No residence loaded
+        </span>
       </div>
     </Html>
   </>
 );
-
-// ============================================================================
-// Overlay Container
-// ============================================================================
-
-const OverlayContainer: React.FC = () => {
-  const overlays = useSceneStore(state => state.overlays);
-
-  return (
-    <div className="overlay-container">
-      {Array.from(overlays.values()).map(overlay => (
-        <OverlayRenderer key={overlay.id} overlay={overlay} />
-      ))}
-    </div>
-  );
-};
-
-interface OverlayRendererProps {
-  overlay: ReturnType<typeof useSceneStore>['overlays'] extends Map<string, infer V> ? V : never;
-}
-
-const OverlayRenderer: React.FC<OverlayRendererProps> = ({ overlay }) => {
-  if (!overlay.visible) return null;
-
-  // Render overlay based on type
-  return (
-    <div
-      className={`overlay overlay-${overlay.type}`}
-      style={{ zIndex: overlay.zIndex }}
-    >
-      {/* Overlay content rendering */}
-    </div>
-  );
-};
 
 // ============================================================================
 // Helper Functions
@@ -724,43 +973,47 @@ function getQualitySettings(quality: QualityLevel) {
   switch (quality) {
     case 'low':
       return {
-        dpr: [0.5, 1],
+        dpr: [0.5, 1] as [number, number],
         shadows: false,
         antialias: false,
         postProcessing: false,
         bloomResolution: 128,
         ssao: false,
         ssaoSamples: 8,
+        dof: false,
       };
     case 'medium':
       return {
-        dpr: [1, 1.5],
+        dpr: [1, 1.5] as [number, number],
         shadows: true,
         antialias: true,
         postProcessing: true,
         bloomResolution: 256,
         ssao: false,
         ssaoSamples: 16,
+        dof: false,
       };
     case 'high':
       return {
-        dpr: [1, 2],
+        dpr: [1, 2] as [number, number],
         shadows: true,
         antialias: true,
         postProcessing: true,
         bloomResolution: 512,
         ssao: true,
         ssaoSamples: 32,
+        dof: true,
       };
     case 'ultra':
       return {
-        dpr: [2, 2],
+        dpr: [2, 2] as [number, number],
         shadows: true,
         antialias: true,
         postProcessing: true,
         bloomResolution: 1024,
         ssao: true,
         ssaoSamples: 64,
+        dof: true,
       };
   }
 }
@@ -774,7 +1027,6 @@ function calculateNodeVisibility(
     return { visible: false, opacity: 0 };
   }
 
-  // Floor isolation
   if (
     floorNavigation.isolateFloor &&
     node.type === 'floor' &&
@@ -783,7 +1035,6 @@ function calculateNodeVisibility(
     return { visible: true, opacity: floorNavigation.floorOpacity };
   }
 
-  // Room focus
   if (roomNavigation.currentRoom !== null) {
     if (node.type === 'room') {
       if (node.metadata.roomId === roomNavigation.currentRoom) {
@@ -803,8 +1054,7 @@ function getRoomColor(
   roomId: RoomId,
   deviceStates: Map<DeviceId, any>
 ): string {
-  // Default color - could be enhanced based on room state
-  return '#3a3a5c';
+  return '#1a1a2e';
 }
 
 export default DigitalTwin;
