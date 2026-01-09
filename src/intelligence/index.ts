@@ -45,6 +45,36 @@ export * from './ritual/ritual-engine';
 export * from './cultural/types';
 export * from './cultural/cultural-controller';
 
+// ============================================================================
+// POST-INTERFACE ERA - The Invisible Brain
+// ============================================================================
+
+// Atmospheric Envelope - Thermal shadows and micro-climate beamforming
+export { useAtmosphericStore } from './atmospheric-envelope';
+export type {
+  ThermalReading,
+  MicroClimateZone,
+  ComfortProfile,
+  AtmosphericIntervention,
+} from './atmospheric-envelope';
+
+// Narrative Engine - Temporal intelligence and day shapes
+export { useNarrativeStore, NARRATIVE_LIBRARY } from './narrative-engine';
+export type {
+  NarrativeContext,
+  DayShape,
+  NarrativeRecord,
+  AnticipatedEvent,
+} from './narrative-engine';
+
+// Empathy Engine - Emotional mirroring and guidance
+export {
+  useEmpathyStore,
+  EMOTIONAL_ATMOSPHERES,
+  GUIDANCE_TARGETS,
+} from './empathy-engine';
+export type { GuidanceTimeline } from './empathy-engine';
+
 /**
  * The Philosophy of Home Intelligence
  * ====================================
