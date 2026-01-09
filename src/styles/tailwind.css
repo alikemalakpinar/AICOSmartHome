@@ -1,0 +1,411 @@
+/**
+ * AICO Smart Home - Tailwind CSS Entry
+ *
+ * Ultra-luxury glassmorphism design system
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   Base Layer - Custom Properties & Reset
+   ============================================================================ */
+
+@layer base {
+  :root {
+    /* Core luxury colors */
+    --lux-black: #000000;
+    --lux-charcoal: #0a0a0f;
+    --lux-surface: #12121a;
+    --lux-elevated: #1a1a24;
+    --lux-border: #2a2a3c;
+
+    /* Accent colors */
+    --electric-blue: #0066ff;
+    --muted-gold: #c9a962;
+    --teal-glow: #00d4aa;
+
+    /* Glass properties */
+    --glass-blur: 24px;
+    --glass-saturation: 180%;
+
+    /* Animation */
+    --spring-tension: 0.34;
+    --spring-friction: 0.64;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    @apply font-display text-white;
+    background: var(--lux-black);
+    background-image:
+      radial-gradient(ellipse at 20% 80%, rgba(0, 102, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0, 212, 170, 0.03) 0%, transparent 50%);
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-teal-glow/30 text-white;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-lux-border rounded-full;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-lux-elevated;
+  }
+}
+
+/* ============================================================================
+   Components Layer - Glass UI System
+   ============================================================================ */
+
+@layer components {
+  /* Base Glass Panel */
+  .glass-panel {
+    @apply relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Glass Card Variants */
+  .glass-card {
+    @apply glass-panel rounded-2xl p-6;
+  }
+
+  .glass-card-sm {
+    @apply glass-panel rounded-xl p-4;
+  }
+
+  .glass-card-lg {
+    @apply glass-panel rounded-3xl p-8;
+  }
+
+  /* Glass Button Base */
+  .glass-btn {
+    @apply relative inline-flex items-center justify-center gap-2;
+    @apply px-6 py-3 rounded-xl;
+    @apply font-medium text-sm;
+    @apply transition-all duration-300 ease-luxury;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-btn:hover {
+    @apply scale-[1.02];
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(0, 212, 170, 0.15),
+      inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .glass-btn:active {
+    @apply scale-[0.98];
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Primary Glass Button */
+  .glass-btn-primary {
+    @apply glass-btn;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 212, 170, 0.3) 0%,
+      rgba(0, 212, 170, 0.1) 100%
+    );
+    border-color: rgba(0, 212, 170, 0.3);
+    @apply text-teal-glow;
+  }
+
+  .glass-btn-primary:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 212, 170, 0.4) 0%,
+      rgba(0, 212, 170, 0.2) 100%
+    );
+    border-color: rgba(0, 212, 170, 0.5);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(0, 212, 170, 0.3);
+  }
+
+  /* Gold Accent Button */
+  .glass-btn-gold {
+    @apply glass-btn;
+    background: linear-gradient(
+      135deg,
+      rgba(201, 169, 98, 0.25) 0%,
+      rgba(201, 169, 98, 0.08) 100%
+    );
+    border-color: rgba(201, 169, 98, 0.3);
+    @apply text-muted-gold;
+  }
+
+  .glass-btn-gold:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(201, 169, 98, 0.35) 0%,
+      rgba(201, 169, 98, 0.15) 100%
+    );
+    border-color: rgba(201, 169, 98, 0.5);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(201, 169, 98, 0.25);
+  }
+
+  /* Icon Button */
+  .glass-btn-icon {
+    @apply glass-btn p-3;
+  }
+
+  .glass-btn-icon-sm {
+    @apply glass-btn p-2 rounded-lg;
+  }
+
+  /* Glass Input */
+  .glass-input {
+    @apply w-full px-4 py-3 rounded-xl;
+    @apply text-white placeholder-white/40;
+    @apply transition-all duration-300 ease-luxury;
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(0, 212, 170, 0.5);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.15);
+  }
+
+  /* Glass Modal Overlay */
+  .glass-modal-overlay {
+    @apply fixed inset-0 z-50;
+    @apply flex items-center justify-center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Glass Sidebar */
+  .glass-sidebar {
+    @apply glass-panel;
+    @apply h-full;
+    @apply flex flex-col;
+    @apply overflow-hidden;
+    border-radius: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Glass Navigation */
+  .glass-nav-item {
+    @apply flex items-center gap-3;
+    @apply px-4 py-3 rounded-xl;
+    @apply text-white/60;
+    @apply transition-all duration-300 ease-luxury;
+  }
+
+  .glass-nav-item:hover {
+    @apply text-white/90;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-nav-item.active {
+    @apply text-teal-glow;
+    background: rgba(0, 212, 170, 0.1);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.1);
+  }
+
+  /* Glass Divider */
+  .glass-divider {
+    @apply w-full h-px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Glow Effects */
+  .glow-teal {
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(201, 169, 98, 0.3);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.3);
+  }
+
+  /* Text Glow */
+  .text-glow-teal {
+    text-shadow: 0 0 20px rgba(0, 212, 170, 0.5);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 20px rgba(201, 169, 98, 0.5);
+  }
+
+  /* Status Indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-dot-online {
+    @apply status-dot bg-success-green;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+
+  .status-dot-offline {
+    @apply status-dot bg-white/30;
+  }
+
+  .status-dot-warning {
+    @apply status-dot bg-warning-amber;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    animation: pulse 2s infinite;
+  }
+
+  .status-dot-error {
+    @apply status-dot bg-error-red;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    animation: pulse 1.5s infinite;
+  }
+}
+
+/* ============================================================================
+   Utilities Layer - Custom Utilities
+   ============================================================================ */
+
+@layer utilities {
+  /* Text Gradient */
+  .text-gradient-teal {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #00d4aa 0%, #00a080 100%);
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #ffd700 0%, #c9a962 100%);
+  }
+
+  .text-gradient-blue {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0066ff 0%, #0044cc 100%);
+  }
+
+  /* No Scrollbar */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hardware Acceleration */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Touch Optimization */
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
+
+/* ============================================================================
+   Animation Keyframes
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+}
