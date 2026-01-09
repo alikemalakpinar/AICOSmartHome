@@ -1,17 +1,14 @@
 /**
  * Media Control Screen
  *
- * Multi-room audio, TV controls, and streaming
- * service management.
+ * Beautiful media controls with multi-room audio
  */
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Music,
-  Tv,
   Volume2,
-  VolumeX,
   Play,
   Pause,
   SkipBack,
@@ -19,24 +16,22 @@ import {
   Shuffle,
   Repeat,
   Speaker,
-  Radio,
-  Mic,
 } from 'lucide-react';
-import { GlassCard, GlassButton, GlassSlider } from '../glass';
 
 interface AudioZone {
   id: string;
   name: string;
+  icon: string;
   isPlaying: boolean;
   volume: number;
   source: string;
 }
 
 const demoZones: AudioZone[] = [
-  { id: 'living', name: 'Living Room', isPlaying: true, volume: 65, source: 'Spotify' },
-  { id: 'bedroom', name: 'Bedroom', isPlaying: false, volume: 30, source: 'Radio' },
-  { id: 'kitchen', name: 'Kitchen', isPlaying: true, volume: 45, source: 'Spotify' },
-  { id: 'office', name: 'Office', isPlaying: false, volume: 50, source: 'AirPlay' },
+  { id: 'living', name: 'Living Room', icon: '🛋️', isPlaying: true, volume: 65, source: 'Spotify' },
+  { id: 'bedroom', name: 'Bedroom', icon: '🛏️', isPlaying: false, volume: 30, source: 'Radio' },
+  { id: 'kitchen', name: 'Kitchen', icon: '🍳', isPlaying: true, volume: 45, source: 'Spotify' },
+  { id: 'office', name: 'Office', icon: '💻', isPlaying: false, volume: 50, source: 'AirPlay' },
 ];
 
 const nowPlaying = {
@@ -75,194 +70,218 @@ export const MediaScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar p-6 space-y-6">
-      {/* Now Playing */}
-      <GlassCard variant="elevated" size="lg" className="relative overflow-hidden">
-        {/* Background blur effect */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            background: 'linear-gradient(135deg, #a78bfa 0%, #f472b6 100%)',
-            filter: 'blur(60px)',
-          }}
-        />
+    <div className="h-full flex flex-col bg-slate-50">
+      {/* Header */}
+      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Media</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Control music & entertainment</p>
+          </div>
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-600">
+            <Music size={12} className="mr-1.5" />
+            {zones.filter(z => z.isPlaying).length} playing
+          </span>
+        </div>
+      </div>
 
-        <div className="relative z-10">
-          <div className="flex items-start gap-6 mb-8">
-            {/* Album Art */}
-            <motion.div
-              className="w-32 h-32 rounded-2xl flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #a78bfa 0%, #f472b6 100%)',
-                boxShadow: '0 8px 32px rgba(167, 139, 250, 0.3)',
-              }}
-              animate={isPlaying ? { scale: [1, 1.02, 1] } : {}}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Music size={48} className="text-white" />
-            </motion.div>
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-5 max-w-3xl mx-auto">
+          {/* Now Playing */}
+          <motion.div
+            className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 shadow-lg relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+            </div>
 
-            {/* Track Info */}
-            <div className="flex-1">
-              <p className="text-xs text-white/50 uppercase tracking-wider mb-1">Now Playing</p>
-              <h2 className="text-2xl font-semibold text-white mb-1">{nowPlaying.title}</h2>
-              <p className="text-white/70">{nowPlaying.artist}</p>
-              <p className="text-sm text-white/50">{nowPlaying.album}</p>
+            <div className="relative z-10">
+              <div className="flex items-start gap-5 mb-6">
+                {/* Album Art */}
+                <motion.div
+                  className="w-28 h-28 rounded-xl flex items-center justify-center bg-white/20 shadow-lg"
+                  animate={isPlaying ? { scale: [1, 1.02, 1] } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Music size={40} className="text-white" />
+                </motion.div>
 
-              {/* Source Badge */}
-              <div className="mt-4 flex items-center gap-2">
-                <div className="px-3 py-1 rounded-full bg-success-green/15 text-success-green text-xs">
-                  {selectedAudioZone.source}
-                </div>
-                <div className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs">
-                  {selectedAudioZone.name}
+                {/* Track Info */}
+                <div className="flex-1 pt-2">
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Now Playing</p>
+                  <h2 className="text-2xl font-semibold text-white mb-1">{nowPlaying.title}</h2>
+                  <p className="text-white/80">{nowPlaying.artist}</p>
+                  <p className="text-sm text-white/50">{nowPlaying.album}</p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-purple-400 to-pink-400"
-                initial={{ width: 0 }}
-                animate={{ width: `${(nowPlaying.elapsed / nowPlaying.duration) * 100}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-xs text-white/50">{formatTime(nowPlaying.elapsed)}</span>
-              <span className="text-xs text-white/50">{formatTime(nowPlaying.duration)}</span>
-            </div>
-          </div>
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-white rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(nowPlaying.elapsed / nowPlaying.duration) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-xs text-white/60">{formatTime(nowPlaying.elapsed)}</span>
+                  <span className="text-xs text-white/60">{formatTime(nowPlaying.duration)}</span>
+                </div>
+              </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-4">
-            <motion.button
-              className={`p-3 rounded-full ${isShuffle ? 'bg-white/10' : ''}`}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsShuffle(!isShuffle)}
-            >
-              <Shuffle size={20} className={isShuffle ? 'text-purple-400' : 'text-white/50'} />
-            </motion.button>
-
-            <motion.button
-              className="p-3 rounded-full"
-              whileTap={{ scale: 0.9 }}
-            >
-              <SkipBack size={24} className="text-white" />
-            </motion.button>
-
-            <motion.button
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #a78bfa 0%, #f472b6 100%)',
-                boxShadow: '0 4px 20px rgba(167, 139, 250, 0.4)',
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsPlaying(!isPlaying)}
-            >
-              {isPlaying ? (
-                <Pause size={28} className="text-white" />
-              ) : (
-                <Play size={28} className="text-white ml-1" />
-              )}
-            </motion.button>
-
-            <motion.button
-              className="p-3 rounded-full"
-              whileTap={{ scale: 0.9 }}
-            >
-              <SkipForward size={24} className="text-white" />
-            </motion.button>
-
-            <motion.button
-              className={`p-3 rounded-full ${repeatMode !== 'off' ? 'bg-white/10' : ''}`}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setRepeatMode(prev => prev === 'off' ? 'all' : prev === 'all' ? 'one' : 'off')}
-            >
-              <Repeat
-                size={20}
-                className={repeatMode !== 'off' ? 'text-purple-400' : 'text-white/50'}
-              />
-              {repeatMode === 'one' && (
-                <span className="absolute text-[8px] text-purple-400 font-bold">1</span>
-              )}
-            </motion.button>
-          </div>
-        </div>
-      </GlassCard>
-
-      {/* Volume Control */}
-      <GlassCard variant="default" size="md">
-        <div className="flex items-center gap-4 mb-4">
-          <Volume2 size={24} className="text-white/50" />
-          <div className="flex-1">
-            <h3 className="text-white font-medium">Master Volume</h3>
-            <p className="text-xs text-white/50">{selectedAudioZone.name}</p>
-          </div>
-          <span className="text-lg font-semibold text-white">{selectedAudioZone.volume}%</span>
-        </div>
-        <GlassSlider
-          value={selectedAudioZone.volume}
-          onChange={(v) => updateZoneVolume(selectedZone, v)}
-          variant="gradient"
-        />
-      </GlassCard>
-
-      {/* Audio Zones */}
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-4">Audio Zones</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {zones.map(zone => (
-            <motion.div
-              key={zone.id}
-              className={`p-4 rounded-xl cursor-pointer ${
-                selectedZone === zone.id ? 'ring-2 ring-purple-400' : ''
-              }`}
-              style={{
-                background: zone.isPlaying
-                  ? 'linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(244, 114, 182, 0.1) 100%)'
-                  : 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
-              whileHover={{ scale: 1.02 }}
-              onClick={() => setSelectedZone(zone.id)}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <Speaker
-                  size={20}
-                  className={zone.isPlaying ? 'text-purple-400' : 'text-white/30'}
-                />
+              {/* Controls */}
+              <div className="flex items-center justify-center gap-3">
                 <motion.button
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{
-                    background: zone.isPlaying ? 'rgba(167, 139, 250, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                  }}
+                  className={`p-2.5 rounded-full ${isShuffle ? 'bg-white/20' : ''}`}
                   whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleZonePlay(zone.id);
-                  }}
+                  onClick={() => setIsShuffle(!isShuffle)}
                 >
-                  {zone.isPlaying ? (
-                    <Pause size={14} className="text-purple-400" />
+                  <Shuffle size={18} className={isShuffle ? 'text-white' : 'text-white/50'} />
+                </motion.button>
+
+                <motion.button
+                  className="p-2.5 rounded-full"
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <SkipBack size={22} className="text-white" />
+                </motion.button>
+
+                <motion.button
+                  className="w-14 h-14 rounded-full flex items-center justify-center bg-white shadow-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                >
+                  {isPlaying ? (
+                    <Pause size={24} className="text-violet-600" />
                   ) : (
-                    <Play size={14} className="text-white/50 ml-0.5" />
+                    <Play size={24} className="text-violet-600 ml-1" />
+                  )}
+                </motion.button>
+
+                <motion.button
+                  className="p-2.5 rounded-full"
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <SkipForward size={22} className="text-white" />
+                </motion.button>
+
+                <motion.button
+                  className={`p-2.5 rounded-full relative ${repeatMode !== 'off' ? 'bg-white/20' : ''}`}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setRepeatMode(prev => prev === 'off' ? 'all' : prev === 'all' ? 'one' : 'off')}
+                >
+                  <Repeat size={18} className={repeatMode !== 'off' ? 'text-white' : 'text-white/50'} />
+                  {repeatMode === 'one' && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-violet-600 text-[10px] font-bold flex items-center justify-center">
+                      1
+                    </span>
                   )}
                 </motion.button>
               </div>
-              <p className="text-sm font-medium text-white">{zone.name}</p>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-white/50">{zone.source}</span>
-                <div className="flex items-center gap-1">
-                  <Volume2 size={12} className="text-white/40" />
-                  <span className="text-xs text-white/50">{zone.volume}%</span>
-                </div>
+            </div>
+          </motion.div>
+
+          {/* Volume Control */}
+          <motion.div
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                <Volume2 size={18} className="text-violet-600" />
               </div>
-            </motion.div>
-          ))}
+              <div className="flex-1">
+                <h3 className="font-medium text-slate-900">Volume</h3>
+                <p className="text-xs text-slate-400">{selectedAudioZone.name}</p>
+              </div>
+              <span className="text-lg font-semibold text-slate-900">{selectedAudioZone.volume}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={selectedAudioZone.volume}
+              onChange={(e) => updateZoneVolume(selectedZone, Number(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer
+                [&::-webkit-slider-thumb]:appearance-none
+                [&::-webkit-slider-thumb]:w-5
+                [&::-webkit-slider-thumb]:h-5
+                [&::-webkit-slider-thumb]:rounded-full
+                [&::-webkit-slider-thumb]:bg-gradient-to-r
+                [&::-webkit-slider-thumb]:from-violet-500
+                [&::-webkit-slider-thumb]:to-purple-500
+                [&::-webkit-slider-thumb]:shadow-md
+                [&::-webkit-slider-thumb]:cursor-pointer"
+            />
+          </motion.div>
+
+          {/* Audio Zones */}
+          <motion.div
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Audio Zones</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {zones.map((zone, index) => (
+                <motion.div
+                  key={zone.id}
+                  className={`p-4 rounded-xl cursor-pointer transition-all ${
+                    selectedZone === zone.id
+                      ? 'ring-2 ring-violet-400 bg-violet-50'
+                      : zone.isPlaying
+                        ? 'bg-slate-50 hover:bg-slate-100'
+                        : 'bg-slate-50/50 hover:bg-slate-100'
+                  }`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.12 + index * 0.03 }}
+                  onClick={() => setSelectedZone(zone.id)}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xl">{zone.icon}</span>
+                    <motion.button
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        zone.isPlaying ? 'bg-violet-100' : 'bg-slate-100'
+                      }`}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleZonePlay(zone.id);
+                      }}
+                    >
+                      {zone.isPlaying ? (
+                        <Pause size={12} className="text-violet-600" />
+                      ) : (
+                        <Play size={12} className="text-slate-400 ml-0.5" />
+                      )}
+                    </motion.button>
+                  </div>
+                  <p className="text-sm font-medium text-slate-800">{zone.name}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-slate-400">{zone.source}</span>
+                    <div className="flex items-center gap-1">
+                      <Volume2 size={10} className="text-slate-300" />
+                      <span className="text-xs text-slate-400">{zone.volume}%</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Bottom Spacing */}
+          <div className="h-4" />
         </div>
       </div>
     </div>

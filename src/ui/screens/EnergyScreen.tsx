@@ -1,8 +1,7 @@
 /**
  * Energy Management Screen
  *
- * Detailed energy monitoring with consumption analytics,
- * solar generation, and device power management.
+ * Beautiful energy monitoring with consumption analytics
  */
 
 import React, { useState } from 'react';
@@ -16,26 +15,24 @@ import {
   Plug,
   Flame,
   Lightbulb,
-  BarChart3,
-  Calendar,
 } from 'lucide-react';
-import { GlassCard, GlassButton } from '../glass';
 
 interface EnergyDevice {
   id: string;
   name: string;
+  icon: string;
   power: number;
   isOn: boolean;
   category: 'climate' | 'lighting' | 'appliance' | 'other';
 }
 
 const demoDevices: EnergyDevice[] = [
-  { id: 'hvac', name: 'HVAC System', power: 1200, isOn: true, category: 'climate' },
-  { id: 'water', name: 'Water Heater', power: 800, isOn: true, category: 'appliance' },
-  { id: 'fridge', name: 'Refrigerator', power: 150, isOn: true, category: 'appliance' },
-  { id: 'lights', name: 'All Lights', power: 340, isOn: true, category: 'lighting' },
-  { id: 'tv', name: 'Entertainment', power: 250, isOn: false, category: 'other' },
-  { id: 'oven', name: 'Oven', power: 2000, isOn: false, category: 'appliance' },
+  { id: 'hvac', name: 'HVAC System', icon: '❄️', power: 1200, isOn: true, category: 'climate' },
+  { id: 'water', name: 'Water Heater', icon: '🚿', power: 800, isOn: true, category: 'appliance' },
+  { id: 'fridge', name: 'Refrigerator', icon: '🧊', power: 150, isOn: true, category: 'appliance' },
+  { id: 'lights', name: 'All Lights', icon: '💡', power: 340, isOn: true, category: 'lighting' },
+  { id: 'tv', name: 'Entertainment', icon: '📺', power: 250, isOn: false, category: 'other' },
+  { id: 'oven', name: 'Oven', icon: '🍳', power: 2000, isOn: false, category: 'appliance' },
 ];
 
 const hourlyData = [
@@ -57,188 +54,215 @@ export const EnergyScreen: React.FC = () => {
     );
   };
 
-  const categoryIcons = {
-    climate: Flame,
-    lighting: Lightbulb,
-    appliance: Plug,
-    other: Zap,
-  };
-
   const categoryColors = {
-    climate: '#f97316',
-    lighting: '#fcd34d',
-    appliance: '#60a5fa',
-    other: '#a78bfa',
+    climate: { bg: 'bg-orange-100', text: 'text-orange-600', icon: Flame },
+    lighting: { bg: 'bg-amber-100', text: 'text-amber-600', icon: Lightbulb },
+    appliance: { bg: 'bg-blue-100', text: 'text-blue-600', icon: Plug },
+    other: { bg: 'bg-purple-100', text: 'text-purple-600', icon: Zap },
   };
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar p-6 space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Current Usage */}
-        <GlassCard variant="elevated" size="md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-warning-amber/15">
-              <Zap size={24} className="text-warning-amber" />
-            </div>
-            <div>
-              <p className="text-xs text-white/50">Current Usage</p>
-              <p className="text-2xl font-semibold text-white">
-                {(totalPower / 1000).toFixed(2)} <span className="text-sm text-white/60">kW</span>
-              </p>
-            </div>
+    <div className="h-full flex flex-col bg-slate-50">
+      {/* Header */}
+      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Energy</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Monitor your consumption</p>
           </div>
-          <div className="flex items-center gap-2 text-error-red">
-            <TrendingUp size={14} />
-            <span className="text-xs">+15% from yesterday</span>
-          </div>
-        </GlassCard>
-
-        {/* Solar Generation */}
-        <GlassCard variant="elevated" size="md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-yellow-400/15">
-              <Sun size={24} className="text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-xs text-white/50">Solar Generation</p>
-              <p className="text-2xl font-semibold text-white">
-                {(solarGeneration / 1000).toFixed(2)} <span className="text-sm text-white/60">kW</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-success-green">
-            <TrendingUp size={14} />
-            <span className="text-xs">Optimal conditions</span>
-          </div>
-        </GlassCard>
-
-        {/* Net Power */}
-        <GlassCard variant="elevated" size="md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-3 rounded-xl ${netPower > 0 ? 'bg-error-red/15' : 'bg-success-green/15'}`}>
-              <Battery size={24} className={netPower > 0 ? 'text-error-red' : 'text-success-green'} />
-            </div>
-            <div>
-              <p className="text-xs text-white/50">Net Power</p>
-              <p className="text-2xl font-semibold text-white">
-                {netPower > 0 ? '+' : ''}{(netPower / 1000).toFixed(2)} <span className="text-sm text-white/60">kW</span>
-              </p>
-            </div>
-          </div>
-          <div className={`flex items-center gap-2 ${netPower > 0 ? 'text-error-red' : 'text-success-green'}`}>
-            {netPower > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-            <span className="text-xs">{netPower > 0 ? 'Using grid power' : 'Selling to grid'}</span>
-          </div>
-        </GlassCard>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+            netPower > 0 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+          }`}>
+            <Zap size={12} className="mr-1.5" />
+            {netPower > 0 ? 'Using Grid' : 'Selling Power'}
+          </span>
+        </div>
       </div>
 
-      {/* Usage Chart */}
-      <GlassCard variant="default" size="lg">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <BarChart3 size={24} className="text-white/50" />
-            <div>
-              <h3 className="text-lg font-semibold text-white">Energy Usage</h3>
-              <p className="text-xs text-white/50">Hourly consumption pattern</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            {(['day', 'week', 'month'] as const).map(range => (
-              <motion.button
-                key={range}
-                className="px-4 py-2 rounded-lg text-sm font-medium capitalize"
-                style={{
-                  background: timeRange === range ? 'rgba(0, 212, 170, 0.15)' : 'transparent',
-                  color: timeRange === range ? '#00d4aa' : 'rgba(255, 255, 255, 0.5)',
-                }}
-                whileHover={{ background: 'rgba(255, 255, 255, 0.05)' }}
-                onClick={() => setTimeRange(range)}
-              >
-                {range}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* Chart */}
-        <div className="h-48 flex items-end gap-1">
-          {hourlyData.map((value, index) => (
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-5 max-w-3xl mx-auto">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-3 gap-3">
             <motion.div
-              key={index}
-              className="flex-1 rounded-t"
-              style={{
-                background: index === 18
-                  ? 'linear-gradient(180deg, #00d4aa 0%, #00d4aa50 100%)'
-                  : 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)',
-              }}
-              initial={{ height: 0 }}
-              animate={{ height: `${(value / 4) * 100}%` }}
-              transition={{ delay: index * 0.02, duration: 0.5 }}
-            />
-          ))}
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="text-xs text-white/40">00:00</span>
-          <span className="text-xs text-white/40">06:00</span>
-          <span className="text-xs text-white/40">12:00</span>
-          <span className="text-xs text-white/40">18:00</span>
-          <span className="text-xs text-white/40">23:00</span>
-        </div>
-      </GlassCard>
-
-      {/* Device Power Consumption */}
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-4">Device Consumption</h3>
-        <div className="space-y-3">
-          {devices.map(device => {
-            const Icon = categoryIcons[device.category];
-            const color = categoryColors[device.category];
-
-            return (
-              <GlassCard key={device.id} variant="subtle" size="sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center"
-                      style={{ background: `${color}15` }}
-                    >
-                      <Icon size={22} style={{ color }} />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{device.name}</p>
-                      <p className="text-xs text-white/50">
-                        {device.isOn ? `${device.power} W` : 'Off'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {device.isOn && (
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-white">
-                          {((device.power / totalPower) * 100).toFixed(0)}%
-                        </p>
-                        <p className="text-xs text-white/50">of total</p>
-                      </div>
-                    )}
-                    <motion.button
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{
-                        background: device.isOn ? 'rgba(0, 212, 170, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => toggleDevice(device.id)}
-                    >
-                      <Plug
-                        size={18}
-                        style={{ color: device.isOn ? '#00d4aa' : 'rgba(255, 255, 255, 0.5)' }}
-                      />
-                    </motion.button>
-                  </div>
+              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Zap size={18} className="text-amber-600" />
                 </div>
-              </GlassCard>
-            );
-          })}
+              </div>
+              <p className="text-2xl font-semibold text-slate-900">
+                {(totalPower / 1000).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">kW Current</p>
+              <div className="flex items-center gap-1 mt-2 text-red-500">
+                <TrendingUp size={12} />
+                <span className="text-xs">+15%</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.03 }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center">
+                  <Sun size={18} className="text-yellow-600" />
+                </div>
+              </div>
+              <p className="text-2xl font-semibold text-slate-900">
+                {(solarGeneration / 1000).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">kW Solar</p>
+              <div className="flex items-center gap-1 mt-2 text-emerald-500">
+                <TrendingUp size={12} />
+                <span className="text-xs">Optimal</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-xl ${netPower > 0 ? 'bg-red-100' : 'bg-emerald-100'} flex items-center justify-center`}>
+                  <Battery size={18} className={netPower > 0 ? 'text-red-500' : 'text-emerald-600'} />
+                </div>
+              </div>
+              <p className="text-2xl font-semibold text-slate-900">
+                {netPower > 0 ? '+' : ''}{(netPower / 1000).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">kW Net</p>
+              <div className={`flex items-center gap-1 mt-2 ${netPower > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                {netPower > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                <span className="text-xs">{netPower > 0 ? 'Using grid' : 'Selling'}</span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Usage Chart */}
+          <motion.div
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="font-semibold text-slate-900">Usage Today</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Hourly consumption</p>
+              </div>
+              <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+                {(['day', 'week', 'month'] as const).map(range => (
+                  <button
+                    key={range}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${
+                      timeRange === range
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                    onClick={() => setTimeRange(range)}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div className="h-40 flex items-end gap-1">
+              {hourlyData.map((value, index) => (
+                <motion.div
+                  key={index}
+                  className="flex-1 rounded-t-sm"
+                  style={{
+                    background: index === 18
+                      ? 'linear-gradient(180deg, #14b8a6 0%, #5eead4 100%)'
+                      : 'linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%)',
+                  }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${(value / 4) * 100}%` }}
+                  transition={{ delay: index * 0.015, duration: 0.4 }}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between mt-3">
+              <span className="text-xs text-slate-400">00:00</span>
+              <span className="text-xs text-slate-400">12:00</span>
+              <span className="text-xs text-slate-400">23:00</span>
+            </div>
+          </motion.div>
+
+          {/* Device Consumption */}
+          <motion.div
+            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Device Consumption</h3>
+              <button className="text-xs text-teal-600 font-medium hover:text-teal-700">
+                Manage
+              </button>
+            </div>
+            <div className="space-y-2">
+              {devices.map((device, index) => {
+                const colors = categoryColors[device.category];
+
+                return (
+                  <motion.div
+                    key={device.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.17 + index * 0.03 }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{device.icon}</span>
+                      <div>
+                        <p className="font-medium text-slate-800 text-sm">{device.name}</p>
+                        <p className="text-xs text-slate-400">
+                          {device.isOn ? `${device.power} W` : 'Off'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {device.isOn && totalPower > 0 && (
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-slate-700">
+                            {((device.power / totalPower) * 100).toFixed(0)}%
+                          </p>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => toggleDevice(device.id)}
+                        className={`w-11 h-6 rounded-full transition-all duration-200 ${
+                          device.isOn
+                            ? 'bg-gradient-to-r from-teal-400 to-teal-500'
+                            : 'bg-slate-200'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                          device.isOn ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Bottom Spacing */}
+          <div className="h-4" />
         </div>
       </div>
     </div>
