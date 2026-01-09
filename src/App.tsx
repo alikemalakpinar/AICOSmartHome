@@ -267,30 +267,23 @@ export const App: React.FC = () => {
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               >
                 <div
-                  className="h-full rounded-3xl overflow-hidden relative"
+                  className="h-full rounded-3xl overflow-hidden relative bg-slate-50"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(5, 15, 30, 0.98) 100%)',
-                    backdropFilter: 'blur(40px) saturate(180%)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                    boxShadow: '0 25px 80px rgba(0, 0, 0, 0.25), 0 10px 30px rgba(0, 0, 0, 0.15)',
                   }}
                 >
                   {/* Screen Header with Close Button */}
                   <div className="absolute top-4 right-4 z-20">
                     <motion.button
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                      }}
+                      className="w-10 h-10 rounded-full flex items-center justify-center bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm"
                       whileHover={{
-                        background: 'rgba(255, 255, 255, 0.15)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         scale: 1.05,
                       }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleCloseScreen}
                     >
-                      <X size={20} className="text-white/70" />
+                      <X size={20} className="text-slate-500" />
                     </motion.button>
                   </div>
 
