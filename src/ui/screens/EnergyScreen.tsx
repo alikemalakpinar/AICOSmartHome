@@ -1,7 +1,7 @@
 /**
  * Energy Management Screen
  *
- * Beautiful energy monitoring with consumption analytics
+ * Vitality flow monitoring and device power management
  */
 
 import React, { useState } from 'react';
@@ -13,26 +13,29 @@ import {
   TrendingUp,
   TrendingDown,
   Plug,
-  Flame,
+  Thermometer,
   Lightbulb,
+  Tv,
+  Refrigerator,
+  Flame,
 } from 'lucide-react';
 
 interface EnergyDevice {
   id: string;
   name: string;
-  icon: string;
+  icon: typeof Plug;
   power: number;
   isOn: boolean;
   category: 'climate' | 'lighting' | 'appliance' | 'other';
 }
 
 const demoDevices: EnergyDevice[] = [
-  { id: 'hvac', name: 'HVAC System', icon: '❄️', power: 1200, isOn: true, category: 'climate' },
-  { id: 'water', name: 'Water Heater', icon: '🚿', power: 800, isOn: true, category: 'appliance' },
-  { id: 'fridge', name: 'Refrigerator', icon: '🧊', power: 150, isOn: true, category: 'appliance' },
-  { id: 'lights', name: 'All Lights', icon: '💡', power: 340, isOn: true, category: 'lighting' },
-  { id: 'tv', name: 'Entertainment', icon: '📺', power: 250, isOn: false, category: 'other' },
-  { id: 'oven', name: 'Oven', icon: '🍳', power: 2000, isOn: false, category: 'appliance' },
+  { id: 'hvac', name: 'HVAC System', icon: Thermometer, power: 1200, isOn: true, category: 'climate' },
+  { id: 'water', name: 'Water Heater', icon: Flame, power: 800, isOn: true, category: 'appliance' },
+  { id: 'fridge', name: 'Refrigerator', icon: Refrigerator, power: 150, isOn: true, category: 'appliance' },
+  { id: 'lights', name: 'All Lights', icon: Lightbulb, power: 340, isOn: true, category: 'lighting' },
+  { id: 'tv', name: 'Entertainment', icon: Tv, power: 250, isOn: false, category: 'other' },
+  { id: 'oven', name: 'Oven', icon: Flame, power: 2000, isOn: false, category: 'appliance' },
 ];
 
 const hourlyData = [
@@ -54,27 +57,20 @@ export const EnergyScreen: React.FC = () => {
     );
   };
 
-  const categoryColors = {
-    climate: { bg: 'bg-orange-100', text: 'text-orange-600', icon: Flame },
-    lighting: { bg: 'bg-amber-100', text: 'text-amber-600', icon: Lightbulb },
-    appliance: { bg: 'bg-blue-100', text: 'text-blue-600', icon: Plug },
-    other: { bg: 'bg-purple-100', text: 'text-purple-600', icon: Zap },
-  };
-
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-slate-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Energy</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Monitor your consumption</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Vitality</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Energy flow monitoring</p>
           </div>
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-            netPower > 0 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
+            netPower > 0 ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
           }`}>
             <Zap size={12} className="mr-1.5" />
-            {netPower > 0 ? 'Using Grid' : 'Selling Power'}
+            {netPower > 0 ? 'Consuming' : 'Generating'}
           </span>
         </div>
       </div>
@@ -85,7 +81,7 @@ export const EnergyScreen: React.FC = () => {
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-3">
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -105,7 +101,7 @@ export const EnergyScreen: React.FC = () => {
             </motion.div>
 
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.03 }}
@@ -126,7 +122,7 @@ export const EnergyScreen: React.FC = () => {
             </motion.div>
 
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.06 }}
@@ -149,14 +145,14 @@ export const EnergyScreen: React.FC = () => {
 
           {/* Usage Chart */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="font-semibold text-slate-900">Usage Today</h3>
+                <h3 className="font-semibold text-slate-900">Flow Pattern</h3>
                 <p className="text-xs text-slate-400 mt-0.5">Hourly consumption</p>
               </div>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
@@ -202,20 +198,20 @@ export const EnergyScreen: React.FC = () => {
 
           {/* Device Consumption */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Device Consumption</h3>
+              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Device Flow</h3>
               <button className="text-xs text-teal-600 font-medium hover:text-teal-700">
                 Manage
               </button>
             </div>
             <div className="space-y-2">
               {devices.map((device, index) => {
-                const colors = categoryColors[device.category];
+                const Icon = device.icon;
 
                 return (
                   <motion.div
@@ -226,11 +222,15 @@ export const EnergyScreen: React.FC = () => {
                     transition={{ delay: 0.17 + index * 0.03 }}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{device.icon}</span>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        device.isOn ? 'bg-teal-100' : 'bg-slate-100'
+                      }`}>
+                        <Icon size={18} className={device.isOn ? 'text-teal-600' : 'text-slate-400'} />
+                      </div>
                       <div>
                         <p className="font-medium text-slate-800 text-sm">{device.name}</p>
                         <p className="text-xs text-slate-400">
-                          {device.isOn ? `${device.power} W` : 'Off'}
+                          {device.isOn ? `${device.power} W` : 'Dormant'}
                         </p>
                       </div>
                     </div>

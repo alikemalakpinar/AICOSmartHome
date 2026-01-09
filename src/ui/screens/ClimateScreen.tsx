@@ -1,7 +1,7 @@
 /**
  * Climate Control Screen
  *
- * Beautiful, functional climate control with smooth scrolling
+ * Atmospheric envelope management with thermal comfort optimization
  */
 
 import React, { useState } from 'react';
@@ -16,6 +16,12 @@ import {
   Clock,
   Leaf,
   Fan,
+  Sofa,
+  Bed,
+  UtensilsCrossed,
+  Laptop,
+  Bath,
+  Building2,
 } from 'lucide-react';
 
 type ClimateMode = 'auto' | 'cool' | 'heat' | 'fan' | 'eco';
@@ -23,7 +29,7 @@ type ClimateMode = 'auto' | 'cool' | 'heat' | 'fan' | 'eco';
 interface RoomClimate {
   id: string;
   name: string;
-  icon: string;
+  icon: typeof Sofa;
   temperature: number;
   targetTemp: number;
   humidity: number;
@@ -31,12 +37,12 @@ interface RoomClimate {
 }
 
 const demoRooms: RoomClimate[] = [
-  { id: '1', name: 'Living Room', icon: '🛋️', temperature: 23, targetTemp: 22, humidity: 45, isActive: true },
-  { id: '2', name: 'Bedroom', icon: '🛏️', temperature: 21, targetTemp: 20, humidity: 48, isActive: true },
-  { id: '3', name: 'Kitchen', icon: '🍳', temperature: 24, targetTemp: 22, humidity: 42, isActive: false },
-  { id: '4', name: 'Office', icon: '💻', temperature: 22, targetTemp: 22, humidity: 44, isActive: true },
-  { id: '5', name: 'Bathroom', icon: '🛁', temperature: 25, targetTemp: 24, humidity: 55, isActive: false },
-  { id: '6', name: 'Guest Room', icon: '🛎️', temperature: 21, targetTemp: 21, humidity: 46, isActive: false },
+  { id: '1', name: 'Living Room', icon: Sofa, temperature: 23, targetTemp: 22, humidity: 45, isActive: true },
+  { id: '2', name: 'Bedroom', icon: Bed, temperature: 21, targetTemp: 20, humidity: 48, isActive: true },
+  { id: '3', name: 'Kitchen', icon: UtensilsCrossed, temperature: 24, targetTemp: 22, humidity: 42, isActive: false },
+  { id: '4', name: 'Office', icon: Laptop, temperature: 22, targetTemp: 22, humidity: 44, isActive: true },
+  { id: '5', name: 'Bathroom', icon: Bath, temperature: 25, targetTemp: 24, humidity: 55, isActive: false },
+  { id: '6', name: 'Guest Room', icon: Building2, temperature: 21, targetTemp: 21, humidity: 46, isActive: false },
 ];
 
 export const ClimateScreen: React.FC = () => {
@@ -61,15 +67,15 @@ export const ClimateScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-slate-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Climate</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Control your home temperature</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Atmosphere</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Thermal comfort envelope</p>
           </div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>
             System Active
           </span>
@@ -81,7 +87,7 @@ export const ClimateScreen: React.FC = () => {
         <div className="p-6 space-y-5 max-w-3xl mx-auto">
           {/* Main Temperature Control */}
           <motion.div
-            className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -89,7 +95,6 @@ export const ClimateScreen: React.FC = () => {
               {/* Temperature Display */}
               <div className="relative mb-6">
                 <svg width="200" height="200" viewBox="0 0 200 200">
-                  {/* Background circle */}
                   <circle
                     cx="100"
                     cy="100"
@@ -98,7 +103,6 @@ export const ClimateScreen: React.FC = () => {
                     stroke="#f1f5f9"
                     strokeWidth="10"
                   />
-                  {/* Progress arc */}
                   <motion.circle
                     cx="100"
                     cy="100"
@@ -145,9 +149,7 @@ export const ClimateScreen: React.FC = () => {
                     [&::-webkit-slider-thumb]:to-teal-500
                     [&::-webkit-slider-thumb]:shadow-lg
                     [&::-webkit-slider-thumb]:shadow-teal-500/30
-                    [&::-webkit-slider-thumb]:cursor-pointer
-                    [&::-webkit-slider-thumb]:transition-transform
-                    [&::-webkit-slider-thumb]:hover:scale-110"
+                    [&::-webkit-slider-thumb]:cursor-pointer"
                 />
                 <div className="flex justify-between text-xs text-slate-400 mt-2 px-1">
                   <span>16°C</span>
@@ -159,7 +161,7 @@ export const ClimateScreen: React.FC = () => {
 
           {/* Mode Selection */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
@@ -196,7 +198,7 @@ export const ClimateScreen: React.FC = () => {
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-3">
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -213,7 +215,7 @@ export const ClimateScreen: React.FC = () => {
             </motion.div>
 
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 }}
@@ -230,7 +232,7 @@ export const ClimateScreen: React.FC = () => {
             </motion.div>
 
             <motion.div
-              className="bg-white rounded-xl p-4 shadow-sm border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.14 }}
@@ -249,57 +251,64 @@ export const ClimateScreen: React.FC = () => {
 
           {/* Room Controls */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.16 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Room Controls</h3>
+              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Room Zones</h3>
               <button className="text-xs text-teal-600 font-medium hover:text-teal-700">
                 View All
               </button>
             </div>
             <div className="space-y-2">
-              {rooms.map((room, index) => (
-                <motion.div
-                  key={room.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.18 + index * 0.03 }}
-                  onClick={() => toggleRoom(room.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{room.icon}</span>
-                    <div>
-                      <p className="font-medium text-slate-800 text-sm">{room.name}</p>
-                      <p className="text-xs text-slate-400">{room.humidity}% humidity</p>
+              {rooms.map((room, index) => {
+                const Icon = room.icon;
+                return (
+                  <motion.div
+                    key={room.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.18 + index * 0.03 }}
+                    onClick={() => toggleRoom(room.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        room.isActive ? 'bg-teal-100' : 'bg-slate-100'
+                      }`}>
+                        <Icon size={18} className={room.isActive ? 'text-teal-600' : 'text-slate-400'} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800 text-sm">{room.name}</p>
+                        <p className="text-xs text-slate-400">{room.humidity}% humidity</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-semibold text-slate-900">{room.temperature}°</p>
-                      <p className="text-xs text-slate-400">→ {room.targetTemp}°</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-semibold text-slate-900">{room.temperature}°</p>
+                        <p className="text-xs text-slate-400">→ {room.targetTemp}°</p>
+                      </div>
+                      <button
+                        className={`w-11 h-6 rounded-full transition-all duration-200 ${
+                          room.isActive
+                            ? 'bg-gradient-to-r from-teal-400 to-teal-500'
+                            : 'bg-slate-200'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleRoom(room.id);
+                        }}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                          room.isActive ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
                     </div>
-                    <button
-                      className={`w-11 h-6 rounded-full transition-all duration-200 ${
-                        room.isActive
-                          ? 'bg-gradient-to-r from-teal-400 to-teal-500'
-                          : 'bg-slate-200'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleRoom(room.id);
-                      }}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                        room.isActive ? 'translate-x-5' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 

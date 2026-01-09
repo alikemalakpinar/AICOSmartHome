@@ -1,7 +1,7 @@
 /**
  * Lighting Control Screen
  *
- * Beautiful, functional lighting control with smooth scrolling
+ * Illumination management with scene and zone controls
  */
 
 import React, { useState } from 'react';
@@ -13,32 +13,37 @@ import {
   Sparkles,
   Film,
   Power,
+  Sofa,
+  Bed,
+  UtensilsCrossed,
+  Bath,
+  Laptop,
+  Utensils,
 } from 'lucide-react';
 
 interface LightZone {
   id: string;
   name: string;
-  icon: string;
+  icon: typeof Sofa;
   brightness: number;
   colorTemp: number;
-  color?: string;
   isOn: boolean;
 }
 
 const demoLights: LightZone[] = [
-  { id: 'living', name: 'Living Room', icon: '🛋️', brightness: 80, colorTemp: 4000, isOn: true },
-  { id: 'bedroom', name: 'Bedroom', icon: '🛏️', brightness: 40, colorTemp: 2700, isOn: true },
-  { id: 'kitchen', name: 'Kitchen', icon: '🍳', brightness: 100, colorTemp: 5000, isOn: true },
-  { id: 'dining', name: 'Dining', icon: '🍽️', brightness: 60, colorTemp: 3000, color: '#ff9500', isOn: false },
-  { id: 'office', name: 'Office', icon: '💻', brightness: 90, colorTemp: 4500, isOn: true },
-  { id: 'bathroom', name: 'Bathroom', icon: '🛁', brightness: 70, colorTemp: 4000, isOn: false },
+  { id: 'living', name: 'Living Room', icon: Sofa, brightness: 80, colorTemp: 4000, isOn: true },
+  { id: 'bedroom', name: 'Bedroom', icon: Bed, brightness: 40, colorTemp: 2700, isOn: true },
+  { id: 'kitchen', name: 'Kitchen', icon: UtensilsCrossed, brightness: 100, colorTemp: 5000, isOn: true },
+  { id: 'dining', name: 'Dining', icon: Utensils, brightness: 60, colorTemp: 3000, isOn: false },
+  { id: 'office', name: 'Office', icon: Laptop, brightness: 90, colorTemp: 4500, isOn: true },
+  { id: 'bathroom', name: 'Bathroom', icon: Bath, brightness: 70, colorTemp: 4000, isOn: false },
 ];
 
 const lightingScenes = [
-  { id: 'bright', name: 'Bright', icon: Sun, color: '#f59e0b' },
+  { id: 'bright', name: 'Energize', icon: Sun, color: '#f59e0b' },
   { id: 'relax', name: 'Relax', icon: Moon, color: '#8b5cf6' },
   { id: 'focus', name: 'Focus', icon: Sparkles, color: '#3b82f6' },
-  { id: 'movie', name: 'Movie', icon: Film, color: '#ec4899' },
+  { id: 'movie', name: 'Cinema', icon: Film, color: '#ec4899' },
 ];
 
 export const LightingScreen: React.FC = () => {
@@ -68,17 +73,17 @@ export const LightingScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-slate-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Lighting</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Control lights throughout your home</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Illumination</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Light orchestration</p>
           </div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100">
             <Lightbulb size={12} className="mr-1.5" />
-            {lights.filter(l => l.isOn).length} lights on
+            {lights.filter(l => l.isOn).length} zones active
           </span>
         </div>
       </div>
@@ -88,45 +93,46 @@ export const LightingScreen: React.FC = () => {
         <div className="p-6 space-y-5 max-w-3xl mx-auto">
           {/* Quick Scenes */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Scenes</h3>
             <div className="grid grid-cols-4 gap-3">
-              {lightingScenes.map((scene) => (
-                <motion.button
-                  key={scene.id}
-                  onClick={() => setActiveScene(activeScene === scene.id ? null : scene.id)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${
-                    activeScene === scene.id
-                      ? 'bg-amber-50 ring-2 ring-amber-400'
-                      : 'bg-slate-50 hover:bg-slate-100'
-                  }`}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <div
-                    className={`p-2.5 rounded-xl ${activeScene === scene.id ? 'bg-white shadow-sm' : ''}`}
+              {lightingScenes.map((scene) => {
+                const Icon = scene.icon;
+                return (
+                  <motion.button
+                    key={scene.id}
+                    onClick={() => setActiveScene(activeScene === scene.id ? null : scene.id)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${
+                      activeScene === scene.id
+                        ? 'bg-amber-50 ring-2 ring-amber-400 border-transparent'
+                        : 'bg-slate-50 hover:bg-slate-100 border border-slate-100'
+                    }`}
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <scene.icon
-                      size={22}
-                      style={{ color: activeScene === scene.id ? scene.color : '#94a3b8' }}
-                    />
-                  </div>
-                  <span className={`text-xs font-medium ${
-                    activeScene === scene.id ? 'text-amber-700' : 'text-slate-500'
-                  }`}>
-                    {scene.name}
-                  </span>
-                </motion.button>
-              ))}
+                    <div className={`p-2.5 rounded-xl ${activeScene === scene.id ? 'bg-white shadow-sm' : ''}`}>
+                      <Icon
+                        size={22}
+                        style={{ color: activeScene === scene.id ? scene.color : '#94a3b8' }}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      activeScene === scene.id ? 'text-amber-700' : 'text-slate-500'
+                    }`}>
+                      {scene.name}
+                    </span>
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
 
           {/* Selected Light Control */}
           {selectedZone && (
             <motion.div
-              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+              className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
@@ -134,22 +140,22 @@ export const LightingScreen: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+                    className="w-14 h-14 rounded-xl flex items-center justify-center"
                     style={{
                       background: selectedZone.isOn
-                        ? `linear-gradient(135deg, ${getColorTempColor(selectedZone.colorTemp)}40 0%, ${getColorTempColor(selectedZone.colorTemp)}20 100%)`
+                        ? `linear-gradient(135deg, ${getColorTempColor(selectedZone.colorTemp)}60 0%, ${getColorTempColor(selectedZone.colorTemp)}30 100%)`
                         : '#f1f5f9',
                       boxShadow: selectedZone.isOn
-                        ? `0 4px 12px ${getColorTempColor(selectedZone.colorTemp)}30`
+                        ? `0 4px 12px ${getColorTempColor(selectedZone.colorTemp)}40`
                         : 'none',
                     }}
                   >
-                    {selectedZone.icon}
+                    <selectedZone.icon size={24} className={selectedZone.isOn ? 'text-amber-600' : 'text-slate-400'} />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-slate-900">{selectedZone.name}</h3>
                     <p className="text-slate-500 text-sm">
-                      {selectedZone.isOn ? `${selectedZone.brightness}% brightness` : 'Off'}
+                      {selectedZone.isOn ? `${selectedZone.brightness}% brightness` : 'Dormant'}
                     </p>
                   </div>
                 </div>
@@ -181,7 +187,7 @@ export const LightingScreen: React.FC = () => {
                       max="100"
                       value={selectedZone.brightness}
                       onChange={(e) => updateLight(selectedZone.id, { brightness: Number(e.target.value) })}
-                      className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer
+                      className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer
                         [&::-webkit-slider-thumb]:appearance-none
                         [&::-webkit-slider-thumb]:w-5
                         [&::-webkit-slider-thumb]:h-5
@@ -228,52 +234,56 @@ export const LightingScreen: React.FC = () => {
 
           {/* All Lights Grid */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">All Lights</h3>
+            <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">All Zones</h3>
             <div className="grid grid-cols-3 gap-3">
-              {lights.map((light, index) => (
-                <motion.div
-                  key={light.id}
-                  className={`p-4 rounded-xl cursor-pointer transition-all ${
-                    selectedLight === light.id
-                      ? 'ring-2 ring-amber-400 bg-amber-50'
-                      : light.isOn
-                        ? 'bg-slate-50 hover:bg-slate-100'
-                        : 'bg-slate-50/50 hover:bg-slate-100'
-                  }`}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.12 + index * 0.02 }}
-                  onClick={() => setSelectedLight(light.id)}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xl">{light.icon}</span>
-                    <motion.button
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              {lights.map((light, index) => {
+                const Icon = light.icon;
+                return (
+                  <motion.div
+                    key={light.id}
+                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                      selectedLight === light.id
+                        ? 'ring-2 ring-amber-400 bg-amber-50'
+                        : light.isOn
+                          ? 'bg-slate-50 hover:bg-slate-100 border border-slate-100'
+                          : 'bg-slate-50/50 hover:bg-slate-100 border border-slate-50'
+                    }`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.12 + index * 0.02 }}
+                    onClick={() => setSelectedLight(light.id)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                         light.isOn ? 'bg-amber-100' : 'bg-slate-100'
-                      }`}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLight(light.id);
-                      }}
-                    >
-                      <Power
-                        size={14}
-                        className={light.isOn ? 'text-amber-600' : 'text-slate-400'}
-                      />
-                    </motion.button>
-                  </div>
-                  <p className="text-sm font-medium text-slate-800 truncate">{light.name}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {light.isOn ? `${light.brightness}%` : 'Off'}
-                  </p>
-                </motion.div>
-              ))}
+                      }`}>
+                        <Icon size={18} className={light.isOn ? 'text-amber-600' : 'text-slate-400'} />
+                      </div>
+                      <motion.button
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          light.isOn ? 'bg-amber-500' : 'bg-slate-200'
+                        }`}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLight(light.id);
+                        }}
+                      >
+                        <Power size={14} className={light.isOn ? 'text-white' : 'text-slate-400'} />
+                      </motion.button>
+                    </div>
+                    <p className="text-sm font-medium text-slate-800 truncate">{light.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {light.isOn ? `${light.brightness}%` : 'Off'}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 

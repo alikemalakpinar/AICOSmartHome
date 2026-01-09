@@ -1,7 +1,7 @@
 /**
  * Security Control Screen
  *
- * Beautiful security management with cameras, locks, and activity logs
+ * Protection and access management
  */
 
 import React, { useState } from 'react';
@@ -13,12 +13,13 @@ import {
   Camera,
   Lock,
   Unlock,
-  Bell,
   Eye,
   Clock,
   AlertTriangle,
   Home,
   Moon,
+  DoorOpen,
+  Car,
 } from 'lucide-react';
 
 type SecurityMode = 'disarmed' | 'home' | 'away' | 'night';
@@ -34,7 +35,7 @@ interface CameraFeed {
 interface DoorLock {
   id: string;
   name: string;
-  icon: string;
+  icon: typeof DoorOpen;
   isLocked: boolean;
   lastActivity: string;
 }
@@ -55,9 +56,9 @@ const demoCameras: CameraFeed[] = [
 ];
 
 const demoLocks: DoorLock[] = [
-  { id: 'front', name: 'Front Door', icon: '🚪', isLocked: true, lastActivity: '2 hours ago' },
-  { id: 'back', name: 'Back Door', icon: '🚪', isLocked: true, lastActivity: '5 hours ago' },
-  { id: 'garage', name: 'Garage Door', icon: '🚗', isLocked: false, lastActivity: '30 min ago' },
+  { id: 'front', name: 'Front Door', icon: DoorOpen, isLocked: true, lastActivity: '2 hours ago' },
+  { id: 'back', name: 'Back Door', icon: DoorOpen, isLocked: true, lastActivity: '5 hours ago' },
+  { id: 'garage', name: 'Garage Door', icon: Car, isLocked: false, lastActivity: '30 min ago' },
 ];
 
 const demoLogs: AccessLog[] = [
@@ -74,7 +75,7 @@ export const SecurityScreen: React.FC = () => {
 
   const modes: { id: SecurityMode; label: string; icon: typeof Shield; color: string; bgColor: string }[] = [
     { id: 'disarmed', label: 'Disarmed', icon: Shield, color: '#64748b', bgColor: '#f1f5f9' },
-    { id: 'home', label: 'Home', icon: Home, color: '#10b981', bgColor: '#d1fae5' },
+    { id: 'home', label: 'Present', icon: Home, color: '#10b981', bgColor: '#d1fae5' },
     { id: 'away', label: 'Away', icon: ShieldAlert, color: '#f59e0b', bgColor: '#fef3c7' },
     { id: 'night', label: 'Night', icon: Moon, color: '#8b5cf6', bgColor: '#ede9fe' },
   ];
@@ -90,17 +91,17 @@ export const SecurityScreen: React.FC = () => {
   const currentMode = modes.find(m => m.id === securityMode)!;
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-slate-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Security</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Protect your home</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Protection</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Home security status</p>
           </div>
           <span
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-            style={{ backgroundColor: currentMode.bgColor, color: currentMode.color }}
+            className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border"
+            style={{ backgroundColor: currentMode.bgColor, color: currentMode.color, borderColor: `${currentMode.color}30` }}
           >
             <currentMode.icon size={12} className="mr-1.5" />
             {currentMode.label} Mode
@@ -113,7 +114,7 @@ export const SecurityScreen: React.FC = () => {
         <div className="p-6 space-y-5 max-w-3xl mx-auto">
           {/* Security Status Card */}
           <motion.div
-            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -147,7 +148,7 @@ export const SecurityScreen: React.FC = () => {
                   }`}
                   style={{
                     backgroundColor: securityMode === mode.id ? mode.bgColor : undefined,
-                    ringColor: securityMode === mode.id ? mode.color : undefined,
+                    outlineColor: securityMode === mode.id ? mode.color : undefined,
                   }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -167,7 +168,7 @@ export const SecurityScreen: React.FC = () => {
 
           {/* Camera Feeds */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
@@ -184,12 +185,9 @@ export const SecurityScreen: React.FC = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedCamera(camera.id)}
                 >
-                  {/* Camera Preview Placeholder */}
                   <div className="aspect-video bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
                     <Camera size={32} className="text-slate-400" />
                   </div>
-
-                  {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <div className="flex items-center justify-between">
@@ -218,57 +216,60 @@ export const SecurityScreen: React.FC = () => {
 
           {/* Door Locks */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Door Locks</h3>
+            <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Access Points</h3>
             <div className="space-y-2">
-              {locks.map((lock, index) => (
-                <motion.div
-                  key={lock.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.12 + index * 0.03 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                        lock.isLocked ? 'bg-emerald-100' : 'bg-red-100'
-                      }`}
-                    >
-                      {lock.isLocked ? (
-                        <Lock size={20} className="text-emerald-600" />
-                      ) : (
-                        <Unlock size={20} className="text-red-500" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-800 text-sm">{lock.name}</p>
-                      <p className="text-xs text-slate-400">Last: {lock.lastActivity}</p>
-                    </div>
-                  </div>
-                  <motion.button
-                    onClick={() => toggleLock(lock.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      lock.isLocked
-                        ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        : 'bg-red-100 text-red-600 hover:bg-red-200'
-                    }`}
-                    whileTap={{ scale: 0.95 }}
+              {locks.map((lock, index) => {
+                const Icon = lock.icon;
+                return (
+                  <motion.div
+                    key={lock.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.12 + index * 0.03 }}
                   >
-                    {lock.isLocked ? 'Unlock' : 'Lock'}
-                  </motion.button>
-                </motion.div>
-              ))}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+                          lock.isLocked ? 'bg-emerald-100' : 'bg-red-100'
+                        }`}
+                      >
+                        {lock.isLocked ? (
+                          <Lock size={20} className="text-emerald-600" />
+                        ) : (
+                          <Unlock size={20} className="text-red-500" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800 text-sm">{lock.name}</p>
+                        <p className="text-xs text-slate-400">Last: {lock.lastActivity}</p>
+                      </div>
+                    </div>
+                    <motion.button
+                      onClick={() => toggleLock(lock.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        lock.isLocked
+                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          : 'bg-red-100 text-red-600 hover:bg-red-200'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {lock.isLocked ? 'Unlock' : 'Lock'}
+                    </motion.button>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 
           {/* Activity Log */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
