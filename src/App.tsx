@@ -17,6 +17,7 @@ import {
   Settings,
   Bell,
   User,
+  X,
 } from 'lucide-react';
 import { DigitalTwin, useSceneStore } from './3d';
 import { useContextStore, startContextTimeUpdater, startIdleTimeTracker } from './ui/context';
@@ -29,6 +30,14 @@ import {
   type NavItem,
 } from './ui/glass';
 import { WeatherWidget, EnergyWidget, EmotionalStateWidget } from './ui/widgets';
+import {
+  ClimateScreen,
+  LightingScreen,
+  SecurityScreen,
+  EnergyScreen,
+  MediaScreen,
+  SettingsScreen,
+} from './ui/screens';
 import type { WeatherData, EnergyData, EmotionalStateData } from './ui/widgets';
 import type { DeviceId, RoomId, FloorId } from './types/core';
 
@@ -101,6 +110,19 @@ const navItems: NavItem[] = [
 ];
 
 // ============================================================================
+// Screen Title Map
+// ============================================================================
+
+const screenTitles: Record<string, string> = {
+  climate: 'Climate Control',
+  lighting: 'Lighting',
+  security: 'Security',
+  energy: 'Energy',
+  media: 'Media',
+  settings: 'Settings',
+};
+
+// ============================================================================
 // Main App Component
 // ============================================================================
 
@@ -111,6 +133,9 @@ export const App: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isPanelFocused, setIsPanelFocused] = useState(false);
+
+  // Determine if a screen should be shown
+  const showScreen = activeNav !== 'home';
 
   useEffect(() => {
     const stopTimeUpdater = startContextTimeUpdater();
@@ -126,6 +151,11 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // Update blur state when navigating
+  useEffect(() => {
+    setIsPanelFocused(showScreen);
+  }, [showScreen]);
+
   const handleDeviceClick = useCallback((deviceId: DeviceId) => {
     console.log('Device clicked:', deviceId);
     setIsPanelFocused(true);
@@ -137,6 +167,14 @@ export const App: React.FC = () => {
 
   const handleFloorClick = useCallback((floorId: FloorId) => {
     console.log('Floor clicked:', floorId);
+  }, []);
+
+  const handleNavSelect = useCallback((id: string) => {
+    setActiveNav(id);
+  }, []);
+
+  const handleCloseScreen = useCallback(() => {
+    setActiveNav('home');
   }, []);
 
   if (!initialized) {
@@ -200,20 +238,71 @@ export const App: React.FC = () => {
         </motion.header>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex">
-          {/* Left Side - Floating Widget Panel */}
-          <motion.aside
-            className="w-80 p-6 pointer-events-auto space-y-4"
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.4 }}
-          >
-            <EnergyWidget data={demoEnergyData} />
-            <EmotionalStateWidget data={demoEmotionalData} />
-          </motion.aside>
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Side - Floating Widget Panel (hidden when screen is open) */}
+          <AnimatePresence>
+            {!showScreen && (
+              <motion.aside
+                className="w-80 p-6 pointer-events-auto space-y-4"
+                initial={{ x: -100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -100, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                <EnergyWidget data={demoEnergyData} />
+                <EmotionalStateWidget data={demoEmotionalData} />
+              </motion.aside>
+            )}
+          </AnimatePresence>
 
-          {/* Center - Empty space for 3D view interaction */}
-          <div className="flex-1" />
+          {/* Center - Screen Content Panel */}
+          <AnimatePresence mode="wait">
+            {showScreen && (
+              <motion.div
+                key={activeNav}
+                className="flex-1 p-6 pointer-events-auto"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                <div
+                  className="h-full rounded-3xl overflow-hidden relative"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(5, 15, 30, 0.98) 100%)',
+                    backdropFilter: 'blur(40px) saturate(180%)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 25px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                  }}
+                >
+                  {/* Screen Header with Close Button */}
+                  <div className="absolute top-4 right-4 z-20">
+                    <motion.button
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                      }}
+                      whileHover={{
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        scale: 1.05,
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleCloseScreen}
+                    >
+                      <X size={20} className="text-white/70" />
+                    </motion.button>
+                  </div>
+
+                  {/* Screen Content */}
+                  <ScreenContent activeScreen={activeNav} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Empty space for 3D view when no screen */}
+          {!showScreen && <div className="flex-1" />}
 
           {/* Right Side - Navigation Sidebar */}
           <motion.aside
@@ -226,32 +315,37 @@ export const App: React.FC = () => {
               <GlassSidebar
                 items={navItems}
                 activeId={activeNav}
-                onSelect={setActiveNav}
+                onSelect={handleNavSelect}
                 collapsed={sidebarCollapsed}
               />
             </div>
           </motion.aside>
         </div>
 
-        {/* Bottom Bar - Quick Actions */}
-        <motion.footer
-          className="pointer-events-auto"
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.5 }}
-        >
-          <div
-            className="mx-6 mb-4 px-6 py-4 rounded-2xl"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <QuickScenes />
-          </div>
-        </motion.footer>
+        {/* Bottom Bar - Quick Actions (hidden when screen is open) */}
+        <AnimatePresence>
+          {!showScreen && (
+            <motion.footer
+              className="pointer-events-auto"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
+              <div
+                className="mx-6 mb-4 px-6 py-4 rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                <QuickScenes />
+              </div>
+            </motion.footer>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Modals & Overlays */}
@@ -266,6 +360,33 @@ export const App: React.FC = () => {
       </GlassModal>
     </div>
   );
+};
+
+// ============================================================================
+// Screen Content Router
+// ============================================================================
+
+interface ScreenContentProps {
+  activeScreen: string;
+}
+
+const ScreenContent: React.FC<ScreenContentProps> = ({ activeScreen }) => {
+  switch (activeScreen) {
+    case 'climate':
+      return <ClimateScreen />;
+    case 'lighting':
+      return <LightingScreen />;
+    case 'security':
+      return <SecurityScreen />;
+    case 'energy':
+      return <EnergyScreen />;
+    case 'media':
+      return <MediaScreen />;
+    case 'settings':
+      return <SettingsScreen />;
+    default:
+      return null;
+  }
 };
 
 // ============================================================================

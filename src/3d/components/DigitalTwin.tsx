@@ -1,40 +1,49 @@
 /**
  * AICO Smart Home - Digital Twin Component
  *
- * Ultra-luxury 3D visualization with photorealistic rendering,
- * HDRI environment, PBR materials, and cinematic post-processing.
+ * Architectural Blueprint Style - Wireframe visualization
+ * inspired by technical architectural drawings with
+ * glowing blue lines on deep blue background.
  */
 
 import React, { Suspense, useRef, useMemo } from 'react';
-import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   PerspectiveCamera,
-  Environment,
-  ContactShadows,
   Html,
+  Line,
+  Grid,
   Float,
-  MeshReflectorMaterial,
-  Sparkles,
-  Stars,
-  Sky,
-  Lightformer,
 } from '@react-three/drei';
 import {
   EffectComposer,
   Bloom,
-  SSAO,
   Vignette,
   ChromaticAberration,
-  DepthOfField,
   Noise,
-  ToneMapping,
 } from '@react-three/postprocessing';
-import { BlendFunction, ToneMappingMode } from 'postprocessing';
+import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { useSceneStore } from '../scene-manager';
 import type { SceneNode, QualityLevel } from '../types';
 import type { DeviceId, RoomId, FloorId } from '@/types/core';
+
+// ============================================================================
+// Blueprint Color Palette
+// ============================================================================
+
+const COLORS = {
+  background: '#0a1628',
+  gridPrimary: '#1e3a5f',
+  gridSecondary: '#0f2847',
+  wireframe: '#00a8ff',
+  wireframeSecondary: '#0066aa',
+  wireframeGlow: '#00d4ff',
+  accent: '#00ffcc',
+  text: '#88ccff',
+  highlight: '#00ffff',
+};
 
 // ============================================================================
 // Main Digital Twin Component
@@ -73,257 +82,155 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({
     >
       <Canvas
         ref={canvasRef}
-        shadows={qualitySettings.shadows ? 'soft' : false}
         dpr={qualitySettings.dpr}
         gl={{
           antialias: qualitySettings.antialias,
           powerPreference: 'high-performance',
-          alpha: true,
-          stencil: false,
-          depth: true,
+          alpha: false,
         }}
-        onCreated={({ gl }) => {
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.1;
-          gl.outputColorSpace = THREE.SRGBColorSpace;
-        }}
-        style={{ background: 'transparent' }}
+        style={{ background: COLORS.background }}
       >
-        <color attach="background" args={['#050508']} />
-
-        {/* Ambient fog for depth */}
-        <fog attach="fog" args={['#050508', 30, 100]} />
+        <color attach="background" args={[COLORS.background]} />
 
         <Suspense fallback={<LoadingIndicator />}>
-          <SceneContent
+          <BlueprintScene
             onDeviceClick={onDeviceClick}
             onRoomClick={onRoomClick}
             onFloorClick={onFloorClick}
           />
         </Suspense>
 
-        {qualitySettings.postProcessing && (
-          <LuxuryPostProcessing quality={quality} />
-        )}
+        {qualitySettings.postProcessing && <BlueprintPostProcessing />}
 
         <PerformanceMonitor onMetrics={updatePerformanceMetrics} />
       </Canvas>
 
-      {/* Overlay gradient for depth */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '30%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.4) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
+      {/* Blueprint corner decorations */}
+      <BlueprintCorners />
     </div>
   );
 };
 
 // ============================================================================
-// Scene Content
+// Blueprint Corner Decorations (UI Overlay)
 // ============================================================================
 
-interface SceneContentProps {
+const BlueprintCorners: React.FC = () => (
+  <>
+    {/* Top Left */}
+    <div
+      style={{
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        width: 60,
+        height: 60,
+        borderLeft: `2px solid ${COLORS.wireframe}40`,
+        borderTop: `2px solid ${COLORS.wireframe}40`,
+        pointerEvents: 'none',
+      }}
+    />
+    {/* Top Right */}
+    <div
+      style={{
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        width: 60,
+        height: 60,
+        borderRight: `2px solid ${COLORS.wireframe}40`,
+        borderTop: `2px solid ${COLORS.wireframe}40`,
+        pointerEvents: 'none',
+      }}
+    />
+    {/* Bottom Left */}
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        width: 60,
+        height: 60,
+        borderLeft: `2px solid ${COLORS.wireframe}40`,
+        borderBottom: `2px solid ${COLORS.wireframe}40`,
+        pointerEvents: 'none',
+      }}
+    />
+    {/* Bottom Right */}
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        width: 60,
+        height: 60,
+        borderRight: `2px solid ${COLORS.wireframe}40`,
+        borderBottom: `2px solid ${COLORS.wireframe}40`,
+        pointerEvents: 'none',
+      }}
+    />
+  </>
+);
+
+// ============================================================================
+// Blueprint Scene
+// ============================================================================
+
+interface BlueprintSceneProps {
   onDeviceClick?: (deviceId: DeviceId) => void;
   onRoomClick?: (roomId: RoomId) => void;
   onFloorClick?: (floorId: FloorId) => void;
 }
 
-const SceneContent: React.FC<SceneContentProps> = ({
+const BlueprintScene: React.FC<BlueprintSceneProps> = ({
   onDeviceClick,
   onRoomClick,
   onFloorClick,
 }) => {
   const { scene, camera, floorNavigation, roomNavigation, interaction } = useSceneStore();
 
-  if (!scene) {
-    return <EmptyScene />;
-  }
-
   return (
     <>
       {/* Camera */}
-      <CameraController camera={camera} />
+      <BlueprintCamera camera={camera} />
 
-      {/* Premium Lighting Setup */}
-      <LuxuryLighting />
+      {/* Minimal ambient lighting for labels */}
+      <ambientLight intensity={0.3} color={COLORS.wireframe} />
 
-      {/* HDRI Environment */}
-      <Environment
-        preset="night"
-        background={false}
-        blur={0.5}
-      >
-        {/* Custom light formers for architectural look */}
-        <Lightformer
-          intensity={2}
-          rotation-x={Math.PI / 2}
-          position={[0, 5, -9]}
-          scale={[10, 10, 1]}
-          color="#00d4aa"
+      {/* Blueprint Grid */}
+      <BlueprintGrid />
+
+      {/* Architectural House Wireframe */}
+      <BlueprintHouse />
+
+      {/* Scene nodes (if available) */}
+      {scene && (
+        <BlueprintSceneGraph
+          node={scene.rootNode}
+          floorNavigation={floorNavigation}
+          roomNavigation={roomNavigation}
+          interaction={interaction}
+          onDeviceClick={onDeviceClick}
+          onRoomClick={onRoomClick}
+          onFloorClick={onFloorClick}
         />
-        <Lightformer
-          intensity={1}
-          rotation-y={Math.PI / 2}
-          position={[-5, 1, -1]}
-          scale={[20, 0.1, 1]}
-          color="#0066ff"
-        />
-        <Lightformer
-          intensity={0.5}
-          rotation-y={-Math.PI / 2}
-          position={[10, 1, 0]}
-          scale={[20, 1, 1]}
-          color="#c9a962"
-        />
-      </Environment>
+      )}
 
-      {/* Reflective Floor */}
-      <ReflectiveGround />
-
-      {/* Ambient Particles */}
-      <Sparkles
-        count={100}
-        scale={40}
-        size={2}
-        speed={0.3}
-        opacity={0.3}
-        color="#00d4aa"
-      />
-
-      {/* Scene Graph */}
-      <SceneGraph
-        node={scene.rootNode}
-        floorNavigation={floorNavigation}
-        roomNavigation={roomNavigation}
-        interaction={interaction}
-        onDeviceClick={onDeviceClick}
-        onRoomClick={onRoomClick}
-        onFloorClick={onFloorClick}
-      />
-
-      {/* State Visualizations */}
-      <StateVisualizations />
+      {/* Floating measurement labels */}
+      <MeasurementLabels />
     </>
   );
 };
 
 // ============================================================================
-// Premium Lighting Setup
+// Blueprint Camera
 // ============================================================================
 
-const LuxuryLighting: React.FC = () => {
-  const mainLightRef = useRef<THREE.DirectionalLight>(null);
-
-  // Subtle animation for main light
-  useFrame(({ clock }) => {
-    if (mainLightRef.current) {
-      mainLightRef.current.intensity = 1.2 + Math.sin(clock.elapsedTime * 0.5) * 0.1;
-    }
-  });
-
-  return (
-    <>
-      {/* Ambient - very subtle */}
-      <ambientLight intensity={0.15} color="#1a1a2e" />
-
-      {/* Key Light - warm architectural */}
-      <directionalLight
-        ref={mainLightRef}
-        position={[15, 25, 15]}
-        intensity={1.2}
-        color="#fff5e6"
-        castShadow
-        shadow-mapSize={[4096, 4096]}
-        shadow-camera-far={60}
-        shadow-camera-left={-25}
-        shadow-camera-right={25}
-        shadow-camera-top={25}
-        shadow-camera-bottom={-25}
-        shadow-bias={-0.0001}
-        shadow-normalBias={0.02}
-      />
-
-      {/* Fill Light - cool blue */}
-      <directionalLight
-        position={[-10, 10, -10]}
-        intensity={0.4}
-        color="#4169e1"
-      />
-
-      {/* Rim Light - teal accent */}
-      <directionalLight
-        position={[0, 5, -15]}
-        intensity={0.3}
-        color="#00d4aa"
-      />
-
-      {/* Ground bounce light */}
-      <hemisphereLight
-        color="#1a1a2e"
-        groundColor="#0a0a12"
-        intensity={0.3}
-      />
-
-      {/* Accent point lights */}
-      <pointLight
-        position={[10, 2, 0]}
-        intensity={0.5}
-        color="#00d4aa"
-        distance={15}
-        decay={2}
-      />
-      <pointLight
-        position={[-10, 2, 5]}
-        intensity={0.3}
-        color="#c9a962"
-        distance={15}
-        decay={2}
-      />
-    </>
-  );
-};
-
-// ============================================================================
-// Reflective Ground Plane
-// ============================================================================
-
-const ReflectiveGround: React.FC = () => {
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-      <planeGeometry args={[100, 100]} />
-      <MeshReflectorMaterial
-        blur={[400, 100]}
-        resolution={1024}
-        mixBlur={1}
-        mixStrength={15}
-        roughness={0.9}
-        depthScale={1.2}
-        minDepthThreshold={0.4}
-        maxDepthThreshold={1.4}
-        color="#050508"
-        metalness={0.8}
-        mirror={0.5}
-      />
-    </mesh>
-  );
-};
-
-// ============================================================================
-// Camera Controller
-// ============================================================================
-
-interface CameraControllerProps {
+interface BlueprintCameraProps {
   camera: ReturnType<typeof useSceneStore>['camera'];
 }
 
-const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
+const BlueprintCamera: React.FC<BlueprintCameraProps> = ({ camera }) => {
   const { setCamera } = useSceneStore();
   const controlsRef = useRef<any>(null);
 
@@ -331,19 +238,19 @@ const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
     <>
       <PerspectiveCamera
         makeDefault
-        position={[camera.position.x, camera.position.y, camera.position.z]}
-        fov={camera.fov}
+        position={[20, 15, 25]}
+        fov={45}
         near={0.1}
         far={1000}
       />
 
       <OrbitControls
         ref={controlsRef}
-        target={[camera.target.x, camera.target.y, camera.target.z]}
-        minDistance={camera.constraints.minDistance}
-        maxDistance={camera.constraints.maxDistance}
-        minPolarAngle={camera.constraints.minPolarAngle}
-        maxPolarAngle={camera.constraints.maxPolarAngle}
+        target={[0, 2, 0]}
+        minDistance={10}
+        maxDistance={50}
+        minPolarAngle={0.2}
+        maxPolarAngle={Math.PI / 2.2}
         enableDamping
         dampingFactor={0.05}
         rotateSpeed={0.4}
@@ -351,94 +258,499 @@ const CameraController: React.FC<CameraControllerProps> = ({ camera }) => {
         zoomSpeed={0.6}
         enablePan
         screenSpacePanning
-        onChange={() => {
-          if (controlsRef.current) {
-            const { x, y, z } = controlsRef.current.object.position;
-            setCamera({ position: { x, y, z } });
-          }
-        }}
       />
     </>
   );
 };
 
 // ============================================================================
-// Luxury Post Processing
+// Blueprint Grid
 // ============================================================================
 
-interface LuxuryPostProcessingProps {
-  quality: QualityLevel;
-}
-
-const LuxuryPostProcessing: React.FC<LuxuryPostProcessingProps> = ({ quality }) => {
-  const settings = getQualitySettings(quality);
-
+const BlueprintGrid: React.FC = () => {
   return (
-    <EffectComposer multisampling={settings.antialias ? 8 : 0}>
-      {/* Bloom - key for luxury glow effect */}
-      <Bloom
-        intensity={0.8}
-        luminanceThreshold={0.6}
-        luminanceSmoothing={0.9}
-        mipmapBlur
-        radius={0.8}
+    <group>
+      {/* Main grid */}
+      <Grid
+        position={[0, 0, 0]}
+        args={[50, 50]}
+        cellSize={1}
+        cellThickness={0.5}
+        cellColor={COLORS.gridPrimary}
+        sectionSize={5}
+        sectionThickness={1}
+        sectionColor={COLORS.wireframe}
+        fadeDistance={60}
+        fadeStrength={1}
+        followCamera={false}
+        infiniteGrid={true}
       />
 
-      {/* SSAO - subtle depth in corners */}
-      {settings.ssao && (
-        <SSAO
-          radius={0.4}
-          intensity={30}
-          luminanceInfluence={0.6}
-          samples={settings.ssaoSamples}
-          worldDistanceThreshold={1}
-          worldDistanceFalloff={0.1}
-          worldProximityThreshold={0.5}
-          worldProximityFalloff={0.5}
-        />
-      )}
-
-      {/* Depth of Field - cinematic */}
-      {settings.dof && (
-        <DepthOfField
-          focusDistance={0.02}
-          focalLength={0.05}
-          bokehScale={4}
-        />
-      )}
-
-      {/* Chromatic Aberration - subtle edge effect */}
-      <ChromaticAberration
-        offset={[0.0005, 0.0005]}
-        blendFunction={BlendFunction.NORMAL}
-        radialModulation={true}
-        modulationOffset={0.5}
+      {/* Center cross marker */}
+      <Line
+        points={[[-2, 0.01, 0], [2, 0.01, 0]]}
+        color={COLORS.accent}
+        lineWidth={2}
       />
-
-      {/* Vignette - darker edges */}
-      <Vignette
-        offset={0.3}
-        darkness={0.6}
-        blendFunction={BlendFunction.NORMAL}
+      <Line
+        points={[[0, 0.01, -2], [0, 0.01, 2]]}
+        color={COLORS.accent}
+        lineWidth={2}
       />
-
-      {/* Film grain - subtle texture */}
-      <Noise
-        opacity={0.03}
-        blendFunction={BlendFunction.OVERLAY}
-      />
-
-      {/* Tone mapping */}
-      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-    </EffectComposer>
+    </group>
   );
 };
 
 // ============================================================================
-// Scene Graph Renderer
+// Blueprint House Wireframe
 // ============================================================================
 
-interface SceneGraphProps {
+const BlueprintHouse: React.FC = () => {
+  const houseRef = useRef<THREE.Group>(null);
+
+  // Subtle rotation animation
+  useFrame(({ clock }) => {
+    if (houseRef.current) {
+      houseRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.1) * 0.05;
+    }
+  });
+
+  return (
+    <group ref={houseRef} position={[0, 0, 0]}>
+      {/* Ground Floor */}
+      <WireframeFloor position={[0, 0, 0]} width={16} depth={12} label="Ground Floor" />
+
+      {/* Ground Floor Rooms */}
+      <WireframeRoom position={[-4, 0, -2]} width={6} depth={6} height={3} label="Living Room" />
+      <WireframeRoom position={[4, 0, -2]} width={6} depth={4} height={3} label="Kitchen" />
+      <WireframeRoom position={[4, 0, 3]} width={6} depth={4} height={3} label="Dining" />
+      <WireframeRoom position={[-4, 0, 4]} width={6} depth={3} height={3} label="Entry" />
+
+      {/* First Floor */}
+      <WireframeFloor position={[0, 3.5, 0]} width={14} depth={10} label="First Floor" />
+
+      {/* First Floor Rooms */}
+      <WireframeRoom position={[-3, 3.5, -1]} width={5} depth={5} height={3} label="Master Bed" />
+      <WireframeRoom position={[3, 3.5, -1]} width={4} depth={4} height={3} label="Bedroom 2" />
+      <WireframeRoom position={[3, 3.5, 3]} width={4} depth={3} height={3} label="Bath" />
+      <WireframeRoom position={[-3, 3.5, 3]} width={5} depth={3} height={3} label="Office" />
+
+      {/* Roof Structure */}
+      <WireframeRoof position={[0, 6.5, 0]} width={16} depth={12} height={4} />
+
+      {/* Stairs */}
+      <WireframeStairs position={[0, 0, 0]} />
+
+      {/* Windows */}
+      <WireframeWindows />
+
+      {/* Device Indicators */}
+      <DeviceIndicators />
+    </group>
+  );
+};
+
+// ============================================================================
+// Wireframe Components
+// ============================================================================
+
+interface WireframeFloorProps {
+  position: [number, number, number];
+  width: number;
+  depth: number;
+  label?: string;
+}
+
+const WireframeFloor: React.FC<WireframeFloorProps> = ({ position, width, depth, label }) => {
+  const hw = width / 2;
+  const hd = depth / 2;
+
+  const points: [number, number, number][] = [
+    [-hw, 0, -hd],
+    [hw, 0, -hd],
+    [hw, 0, hd],
+    [-hw, 0, hd],
+    [-hw, 0, -hd],
+  ];
+
+  return (
+    <group position={position}>
+      <Line
+        points={points}
+        color={COLORS.wireframe}
+        lineWidth={2}
+      />
+      {/* Floor grid lines */}
+      {Array.from({ length: Math.floor(width) + 1 }).map((_, i) => (
+        <Line
+          key={`floor-x-${i}`}
+          points={[
+            [-hw + i, 0.01, -hd],
+            [-hw + i, 0.01, hd],
+          ]}
+          color={COLORS.gridPrimary}
+          lineWidth={0.5}
+        />
+      ))}
+      {Array.from({ length: Math.floor(depth) + 1 }).map((_, i) => (
+        <Line
+          key={`floor-z-${i}`}
+          points={[
+            [-hw, 0.01, -hd + i],
+            [hw, 0.01, -hd + i],
+          ]}
+          color={COLORS.gridPrimary}
+          lineWidth={0.5}
+        />
+      ))}
+    </group>
+  );
+};
+
+interface WireframeRoomProps {
+  position: [number, number, number];
+  width: number;
+  depth: number;
+  height: number;
+  label?: string;
+}
+
+const WireframeRoom: React.FC<WireframeRoomProps> = ({ position, width, depth, height, label }) => {
+  const roomRef = useRef<THREE.Group>(null);
+  const hw = width / 2;
+  const hd = depth / 2;
+
+  // Pulsing animation
+  useFrame(({ clock }) => {
+    if (roomRef.current) {
+      const material = roomRef.current.children[0] as any;
+      if (material?.material) {
+        material.material.opacity = 0.6 + Math.sin(clock.elapsedTime * 2) * 0.2;
+      }
+    }
+  });
+
+  // Box edges
+  const edges: Array<[[number, number, number], [number, number, number]]> = [
+    // Bottom
+    [[-hw, 0, -hd], [hw, 0, -hd]],
+    [[hw, 0, -hd], [hw, 0, hd]],
+    [[hw, 0, hd], [-hw, 0, hd]],
+    [[-hw, 0, hd], [-hw, 0, -hd]],
+    // Top
+    [[-hw, height, -hd], [hw, height, -hd]],
+    [[hw, height, -hd], [hw, height, hd]],
+    [[hw, height, hd], [-hw, height, hd]],
+    [[-hw, height, hd], [-hw, height, -hd]],
+    // Verticals
+    [[-hw, 0, -hd], [-hw, height, -hd]],
+    [[hw, 0, -hd], [hw, height, -hd]],
+    [[hw, 0, hd], [hw, height, hd]],
+    [[-hw, 0, hd], [-hw, height, hd]],
+  ];
+
+  return (
+    <group ref={roomRef} position={position}>
+      {edges.map((edge, i) => (
+        <Line
+          key={i}
+          points={edge}
+          color={COLORS.wireframe}
+          lineWidth={1.5}
+          transparent
+          opacity={0.8}
+        />
+      ))}
+
+      {/* Room label */}
+      {label && (
+        <Float speed={2} floatIntensity={0.2}>
+          <Html
+            position={[0, height / 2, 0]}
+            center
+            distanceFactor={15}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              style={{
+                padding: '4px 12px',
+                background: `${COLORS.background}cc`,
+                border: `1px solid ${COLORS.wireframe}60`,
+                borderRadius: '4px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span
+                style={{
+                  color: COLORS.text,
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {label}
+              </span>
+            </div>
+          </Html>
+        </Float>
+      )}
+    </group>
+  );
+};
+
+interface WireframeRoofProps {
+  position: [number, number, number];
+  width: number;
+  depth: number;
+  height: number;
+}
+
+const WireframeRoof: React.FC<WireframeRoofProps> = ({ position, width, depth, height }) => {
+  const hw = width / 2;
+  const hd = depth / 2;
+
+  // Roof points (simple gable roof)
+  const roofEdges: Array<[[number, number, number], [number, number, number]]> = [
+    // Base rectangle
+    [[-hw, 0, -hd], [hw, 0, -hd]],
+    [[hw, 0, -hd], [hw, 0, hd]],
+    [[hw, 0, hd], [-hw, 0, hd]],
+    [[-hw, 0, hd], [-hw, 0, -hd]],
+    // Ridge
+    [[0, height, -hd], [0, height, hd]],
+    // Front gable
+    [[-hw, 0, -hd], [0, height, -hd]],
+    [[hw, 0, -hd], [0, height, -hd]],
+    // Back gable
+    [[-hw, 0, hd], [0, height, hd]],
+    [[hw, 0, hd], [0, height, hd]],
+  ];
+
+  return (
+    <group position={position}>
+      {roofEdges.map((edge, i) => (
+        <Line
+          key={i}
+          points={edge}
+          color={COLORS.wireframeSecondary}
+          lineWidth={1}
+          transparent
+          opacity={0.6}
+        />
+      ))}
+    </group>
+  );
+};
+
+const WireframeStairs: React.FC<{ position: [number, number, number] }> = ({ position }) => {
+  const steps = 8;
+  const stepHeight = 3.5 / steps;
+  const stepDepth = 0.4;
+
+  return (
+    <group position={position}>
+      {Array.from({ length: steps }).map((_, i) => (
+        <group key={i} position={[0, i * stepHeight, i * stepDepth - 1]}>
+          <Line
+            points={[
+              [-1, 0, 0],
+              [1, 0, 0],
+              [1, 0, stepDepth],
+              [-1, 0, stepDepth],
+              [-1, 0, 0],
+            ]}
+            color={COLORS.wireframeSecondary}
+            lineWidth={1}
+          />
+        </group>
+      ))}
+    </group>
+  );
+};
+
+const WireframeWindows: React.FC = () => {
+  const windowPositions: Array<{ pos: [number, number, number]; size: [number, number] }> = [
+    { pos: [-7, 1.5, -5.01], size: [2, 1.5] },
+    { pos: [-4, 1.5, -5.01], size: [2, 1.5] },
+    { pos: [3, 1.5, -5.01], size: [1.5, 1.2] },
+    { pos: [6, 1.5, -5.01], size: [1.5, 1.2] },
+    { pos: [-5.5, 5, -4.01], size: [1.5, 1.5] },
+    { pos: [3, 5, -4.01], size: [1.2, 1.2] },
+  ];
+
+  return (
+    <group>
+      {windowPositions.map((win, i) => (
+        <WireframeWindow key={i} position={win.pos} width={win.size[0]} height={win.size[1]} />
+      ))}
+    </group>
+  );
+};
+
+interface WireframeWindowProps {
+  position: [number, number, number];
+  width: number;
+  height: number;
+}
+
+const WireframeWindow: React.FC<WireframeWindowProps> = ({ position, width, height }) => {
+  const hw = width / 2;
+  const hh = height / 2;
+
+  return (
+    <group position={position}>
+      {/* Window frame */}
+      <Line
+        points={[
+          [-hw, -hh, 0],
+          [hw, -hh, 0],
+          [hw, hh, 0],
+          [-hw, hh, 0],
+          [-hw, -hh, 0],
+        ]}
+        color={COLORS.accent}
+        lineWidth={1.5}
+      />
+      {/* Cross divider */}
+      <Line points={[[0, -hh, 0], [0, hh, 0]]} color={COLORS.accent} lineWidth={1} />
+      <Line points={[[-hw, 0, 0], [hw, 0, 0]]} color={COLORS.accent} lineWidth={1} />
+    </group>
+  );
+};
+
+// ============================================================================
+// Device Indicators
+// ============================================================================
+
+const DeviceIndicators: React.FC = () => {
+  const deviceStates = useSceneStore(state => state.deviceStates);
+
+  const devices = [
+    { id: 'light-living', pos: [-4, 2.8, -2] as [number, number, number], label: 'Light' },
+    { id: 'thermostat', pos: [-2, 1.5, -4.5] as [number, number, number], label: 'HVAC' },
+    { id: 'camera-entry', pos: [-4, 2.5, 5.5] as [number, number, number], label: 'Camera' },
+    { id: 'light-kitchen', pos: [4, 2.8, -2] as [number, number, number], label: 'Light' },
+    { id: 'speaker-living', pos: [-6, 1, -3] as [number, number, number], label: 'Speaker' },
+  ];
+
+  return (
+    <group>
+      {devices.map(device => (
+        <DeviceMarker
+          key={device.id}
+          position={device.pos}
+          label={device.label}
+          active={true}
+        />
+      ))}
+    </group>
+  );
+};
+
+interface DeviceMarkerProps {
+  position: [number, number, number];
+  label: string;
+  active: boolean;
+}
+
+const DeviceMarker: React.FC<DeviceMarkerProps> = ({ position, label, active }) => {
+  const markerRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (markerRef.current && active) {
+      markerRef.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 3) * 0.1);
+    }
+  });
+
+  return (
+    <group ref={markerRef} position={position}>
+      {/* Device point */}
+      <mesh>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshBasicMaterial color={active ? COLORS.accent : COLORS.wireframeSecondary} />
+      </mesh>
+
+      {/* Glow ring */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.15, 0.2, 32]} />
+        <meshBasicMaterial
+          color={COLORS.accent}
+          transparent
+          opacity={active ? 0.5 : 0.2}
+        />
+      </mesh>
+
+      {/* Connection line to floor */}
+      <Line
+        points={[[0, 0, 0], [0, -position[1], 0]]}
+        color={COLORS.wireframeSecondary}
+        lineWidth={0.5}
+        dashed
+        dashSize={0.1}
+        gapSize={0.1}
+      />
+    </group>
+  );
+};
+
+// ============================================================================
+// Measurement Labels
+// ============================================================================
+
+const MeasurementLabels: React.FC = () => {
+  return (
+    <group>
+      {/* Width measurement */}
+      <group position={[0, 0.1, -8]}>
+        <Line
+          points={[[-8, 0, 0], [8, 0, 0]]}
+          color={COLORS.accent}
+          lineWidth={1}
+        />
+        <Html position={[0, 0, 0]} center style={{ pointerEvents: 'none' }}>
+          <span style={{ color: COLORS.accent, fontSize: '10px', fontFamily: 'monospace' }}>
+            16.0m
+          </span>
+        </Html>
+      </group>
+
+      {/* Depth measurement */}
+      <group position={[-10, 0.1, 0]}>
+        <Line
+          points={[[0, 0, -6], [0, 0, 6]]}
+          color={COLORS.accent}
+          lineWidth={1}
+        />
+        <Html position={[0, 0, 0]} center style={{ pointerEvents: 'none' }}>
+          <span style={{ color: COLORS.accent, fontSize: '10px', fontFamily: 'monospace' }}>
+            12.0m
+          </span>
+        </Html>
+      </group>
+
+      {/* Height measurement */}
+      <group position={[-10, 5, -8]}>
+        <Line
+          points={[[0, -5, 0], [0, 5, 0]]}
+          color={COLORS.accent}
+          lineWidth={1}
+        />
+        <Html position={[0, 0, 0]} center style={{ pointerEvents: 'none' }}>
+          <span style={{ color: COLORS.accent, fontSize: '10px', fontFamily: 'monospace' }}>
+            10.0m
+          </span>
+        </Html>
+      </group>
+    </group>
+  );
+};
+
+// ============================================================================
+// Blueprint Scene Graph (for loaded residence data)
+// ============================================================================
+
+interface BlueprintSceneGraphProps {
   node: SceneNode;
   floorNavigation: ReturnType<typeof useSceneStore>['floorNavigation'];
   roomNavigation: ReturnType<typeof useSceneStore>['roomNavigation'];
@@ -448,7 +760,7 @@ interface SceneGraphProps {
   onFloorClick?: (floorId: FloorId) => void;
 }
 
-const SceneGraph: React.FC<SceneGraphProps> = ({
+const BlueprintSceneGraph: React.FC<BlueprintSceneGraphProps> = ({
   node,
   floorNavigation,
   roomNavigation,
@@ -457,64 +769,11 @@ const SceneGraph: React.FC<SceneGraphProps> = ({
   onRoomClick,
   onFloorClick,
 }) => {
-  const { selectNode, setHoveredNode } = useSceneStore();
-
-  const isSelected = interaction.selectedNodes.includes(node.id);
-  const isHovered = interaction.hoveredNode === node.id;
-
-  const { visible, opacity } = calculateNodeVisibility(
-    node,
-    floorNavigation,
-    roomNavigation
-  );
-
-  if (!visible) return null;
-
-  const handleClick = (e: THREE.Event) => {
-    e.stopPropagation();
-
-    if (node.type === 'room' && onRoomClick) {
-      onRoomClick(node.metadata.roomId as RoomId);
-    } else if (node.type === 'floor' && onFloorClick) {
-      onFloorClick(node.metadata.floorId as FloorId);
-    } else if (node.type === 'device' && onDeviceClick) {
-      onDeviceClick(node.metadata.deviceId as DeviceId);
-    }
-
-    selectNode(node.id);
-  };
-
+  // Render children only - the house wireframe is our main visual
   return (
-    <group
-      position={[
-        node.transform.position.x,
-        node.transform.position.y,
-        node.transform.position.z,
-      ]}
-      rotation={[
-        node.transform.rotation.x,
-        node.transform.rotation.y,
-        node.transform.rotation.z,
-      ]}
-      scale={[
-        node.transform.scale.x,
-        node.transform.scale.y,
-        node.transform.scale.z,
-      ]}
-    >
-      <NodeContent
-        node={node}
-        opacity={opacity}
-        isSelected={isSelected}
-        isHovered={isHovered}
-        interactive={node.interactive}
-        onClick={handleClick}
-        onPointerOver={() => setHoveredNode(node.id)}
-        onPointerOut={() => setHoveredNode(null)}
-      />
-
+    <group>
       {node.children.map(child => (
-        <SceneGraph
+        <BlueprintSceneGraph
           key={child.id}
           node={child}
           floorNavigation={floorNavigation}
@@ -530,361 +789,44 @@ const SceneGraph: React.FC<SceneGraphProps> = ({
 };
 
 // ============================================================================
-// Node Content Renderer
+// Blueprint Post Processing
 // ============================================================================
 
-interface NodeContentProps {
-  node: SceneNode;
-  opacity: number;
-  isSelected: boolean;
-  isHovered: boolean;
-  interactive: boolean;
-  onClick: (e: THREE.Event) => void;
-  onPointerOver: () => void;
-  onPointerOut: () => void;
-}
-
-const NodeContent: React.FC<NodeContentProps> = ({
-  node,
-  opacity,
-  isSelected,
-  isHovered,
-  interactive,
-  onClick,
-  onPointerOver,
-  onPointerOut,
-}) => {
-  switch (node.type) {
-    case 'room':
-      return (
-        <PBRRoomMesh
-          node={node}
-          opacity={opacity}
-          isSelected={isSelected}
-          isHovered={isHovered}
-          interactive={interactive}
-          onClick={onClick}
-          onPointerOver={onPointerOver}
-          onPointerOut={onPointerOut}
-        />
-      );
-
-    case 'device':
-      return (
-        <PBRDeviceMesh
-          node={node}
-          opacity={opacity}
-          isSelected={isSelected}
-          isHovered={isHovered}
-          onClick={onClick}
-          onPointerOver={onPointerOver}
-          onPointerOut={onPointerOut}
-        />
-      );
-
-    case 'floor':
-      return (
-        <PBRFloorMesh
-          node={node}
-          opacity={opacity}
-          isSelected={isSelected}
-          isHovered={isHovered}
-        />
-      );
-
-    default:
-      return null;
-  }
-};
-
-// ============================================================================
-// PBR Room Mesh
-// ============================================================================
-
-interface PBRRoomMeshProps {
-  node: SceneNode;
-  opacity: number;
-  isSelected: boolean;
-  isHovered: boolean;
-  interactive: boolean;
-  onClick: (e: THREE.Event) => void;
-  onPointerOver: () => void;
-  onPointerOut: () => void;
-}
-
-const PBRRoomMesh: React.FC<PBRRoomMeshProps> = ({
-  node,
-  opacity,
-  isSelected,
-  isHovered,
-  interactive,
-  onClick,
-  onPointerOver,
-  onPointerOut,
-}) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const deviceStates = useSceneStore(state => state.deviceStates);
-  const roomId = node.metadata.roomId as RoomId;
-
-  // Animate selection glow
-  useFrame(({ clock }) => {
-    if (meshRef.current && (isSelected || isHovered)) {
-      const material = meshRef.current.material as THREE.MeshStandardMaterial;
-      material.emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 3) * 0.1;
-    }
-  });
-
-  const roomColor = getRoomColor(roomId, deviceStates);
-
+const BlueprintPostProcessing: React.FC = () => {
   return (
-    <group>
-      {/* Room floor - PBR material */}
-      <mesh
-        ref={meshRef}
-        receiveShadow
-        castShadow
-        onClick={interactive ? onClick : undefined}
-        onPointerOver={interactive ? onPointerOver : undefined}
-        onPointerOut={interactive ? onPointerOut : undefined}
-      >
-        <boxGeometry args={[5, 0.15, 5]} />
-        <meshStandardMaterial
-          color={roomColor}
-          transparent
-          opacity={opacity * 0.9}
-          roughness={0.4}
-          metalness={0.1}
-          envMapIntensity={0.8}
-          emissive={isSelected ? '#00d4aa' : isHovered ? '#0066ff' : '#000000'}
-          emissiveIntensity={isSelected || isHovered ? 0.2 : 0}
-        />
-      </mesh>
-
-      {/* Room walls - glass-like material */}
-      <mesh position={[0, 1.5, 0]}>
-        <boxGeometry args={[5, 3, 5]} />
-        <meshPhysicalMaterial
-          color="#1a1a2e"
-          transparent
-          opacity={opacity * 0.15}
-          roughness={0.1}
-          metalness={0}
-          transmission={0.9}
-          thickness={0.5}
-          envMapIntensity={0.5}
-          side={THREE.BackSide}
-        />
-      </mesh>
-
-      {/* Edge glow for selected/hovered */}
-      {(isSelected || isHovered) && (
-        <mesh position={[0, 0.01, 0]}>
-          <boxGeometry args={[5.1, 0.02, 5.1]} />
-          <meshBasicMaterial
-            color={isSelected ? '#00d4aa' : '#0066ff'}
-            transparent
-            opacity={0.6}
-          />
-        </mesh>
-      )}
-
-      {/* Room label */}
-      <Float speed={2} floatIntensity={0.3}>
-        <Html
-          position={[0, 2.5, 0]}
-          center
-          distanceFactor={15}
-          style={{
-            opacity: opacity,
-            pointerEvents: 'none',
-            transition: 'opacity 0.3s ease',
-          }}
-        >
-          <div
-            style={{
-              padding: '8px 16px',
-              background: 'rgba(0, 0, 0, 0.8)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <span
-              style={{
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {node.name}
-            </span>
-          </div>
-        </Html>
-      </Float>
-    </group>
-  );
-};
-
-// ============================================================================
-// PBR Device Mesh
-// ============================================================================
-
-interface PBRDeviceMeshProps {
-  node: SceneNode;
-  opacity: number;
-  isSelected: boolean;
-  isHovered: boolean;
-  onClick: (e: THREE.Event) => void;
-  onPointerOver: () => void;
-  onPointerOut: () => void;
-}
-
-const PBRDeviceMesh: React.FC<PBRDeviceMeshProps> = ({
-  node,
-  opacity,
-  isSelected,
-  isHovered,
-  onClick,
-  onPointerOver,
-  onPointerOut,
-}) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
-  const deviceStates = useSceneStore(state => state.deviceStates);
-  const deviceId = node.metadata.deviceId as DeviceId;
-  const deviceState = deviceStates.get(deviceId);
-
-  const isOn = deviceState?.values?.on === true;
-  const color = isOn ? '#00d4aa' : '#3a3a5c';
-
-  // Animate glow
-  useFrame(({ clock }) => {
-    if (glowRef.current && isOn) {
-      glowRef.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.1);
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity =
-        0.3 + Math.sin(clock.elapsedTime * 4) * 0.15;
-    }
-  });
-
-  return (
-    <Float speed={3} floatIntensity={isOn ? 0.2 : 0.05}>
-      <group>
-        {/* Device sphere - metallic PBR */}
-        <mesh
-          ref={meshRef}
-          castShadow
-          onClick={onClick}
-          onPointerOver={onPointerOver}
-          onPointerOut={onPointerOut}
-        >
-          <sphereGeometry args={[0.25, 32, 32]} />
-          <meshStandardMaterial
-            color={color}
-            transparent
-            opacity={opacity}
-            roughness={0.2}
-            metalness={0.8}
-            envMapIntensity={1}
-            emissive={color}
-            emissiveIntensity={isOn ? 0.5 : 0.05}
-          />
-        </mesh>
-
-        {/* Outer glow when on */}
-        {isOn && (
-          <mesh ref={glowRef} scale={1.5}>
-            <sphereGeometry args={[0.25, 16, 16]} />
-            <meshBasicMaterial
-              color={color}
-              transparent
-              opacity={0.3}
-              side={THREE.BackSide}
-            />
-          </mesh>
-        )}
-
-        {/* Selection ring */}
-        {(isSelected || isHovered) && (
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
-            <ringGeometry args={[0.35, 0.4, 32]} />
-            <meshBasicMaterial
-              color={isSelected ? '#00d4aa' : '#0066ff'}
-              transparent
-              opacity={0.8}
-            />
-          </mesh>
-        )}
-      </group>
-    </Float>
-  );
-};
-
-// ============================================================================
-// PBR Floor Mesh
-// ============================================================================
-
-interface PBRFloorMeshProps {
-  node: SceneNode;
-  opacity: number;
-  isSelected: boolean;
-  isHovered: boolean;
-}
-
-const PBRFloorMesh: React.FC<PBRFloorMeshProps> = ({
-  node,
-  opacity,
-}) => {
-  return (
-    <mesh receiveShadow position={[0, -0.05, 0]}>
-      <boxGeometry args={[25, 0.1, 25]} />
-      <meshStandardMaterial
-        color="#12121a"
-        transparent
-        opacity={opacity * 0.8}
-        roughness={0.7}
-        metalness={0.2}
-        envMapIntensity={0.3}
+    <EffectComposer>
+      {/* Strong bloom for glowing wireframes */}
+      <Bloom
+        intensity={1.2}
+        luminanceThreshold={0.4}
+        luminanceSmoothing={0.9}
+        mipmapBlur
+        radius={0.7}
       />
-    </mesh>
+
+      {/* Subtle chromatic aberration */}
+      <ChromaticAberration
+        offset={[0.0003, 0.0003]}
+        blendFunction={BlendFunction.NORMAL}
+        radialModulation={true}
+        modulationOffset={0.5}
+      />
+
+      {/* Vignette for focus */}
+      <Vignette
+        offset={0.35}
+        darkness={0.5}
+        blendFunction={BlendFunction.NORMAL}
+      />
+
+      {/* Subtle noise for texture */}
+      <Noise
+        opacity={0.02}
+        blendFunction={BlendFunction.OVERLAY}
+      />
+    </EffectComposer>
   );
 };
-
-// ============================================================================
-// State Visualizations
-// ============================================================================
-
-const StateVisualizations: React.FC = () => {
-  const activeVisualizations = useSceneStore(state => state.activeVisualizations);
-
-  return (
-    <group>
-      {activeVisualizations.map((viz, index) => (
-        <VisualizationRenderer key={`${viz.type}-${index}`} visualization={viz} />
-      ))}
-    </group>
-  );
-};
-
-interface VisualizationRendererProps {
-  visualization: ReturnType<typeof useSceneStore>['activeVisualizations'][0];
-}
-
-const VisualizationRenderer: React.FC<VisualizationRendererProps> = ({ visualization }) => {
-  switch (visualization.type) {
-    case 'temperature_gradient':
-      return <TemperatureGradientVisualization config={visualization.config} />;
-    case 'occupancy_heatmap':
-      return <OccupancyHeatmapVisualization config={visualization.config} />;
-    default:
-      return null;
-  }
-};
-
-const TemperatureGradientVisualization: React.FC<{ config: any }> = () => null;
-const OccupancyHeatmapVisualization: React.FC<{ config: any }> = () => null;
 
 // ============================================================================
 // Performance Monitor
@@ -907,7 +849,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onMetrics }) =>
 };
 
 // ============================================================================
-// Loading & Empty States
+// Loading Indicator
 // ============================================================================
 
 const LoadingIndicator: React.FC = () => (
@@ -918,51 +860,27 @@ const LoadingIndicator: React.FC = () => (
         flexDirection: 'column',
         alignItems: 'center',
         gap: '16px',
-        padding: '32px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '20px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '24px 32px',
+        background: `${COLORS.background}ee`,
+        border: `1px solid ${COLORS.wireframe}40`,
+        borderRadius: '8px',
       }}
     >
       <div
         style={{
-          width: '48px',
-          height: '48px',
-          border: '3px solid rgba(255, 255, 255, 0.1)',
-          borderTopColor: '#00d4aa',
+          width: '40px',
+          height: '40px',
+          border: `2px solid ${COLORS.wireframe}30`,
+          borderTopColor: COLORS.wireframe,
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
         }}
       />
-      <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
-        Loading Digital Twin...
+      <span style={{ color: COLORS.text, fontSize: '12px', fontFamily: 'monospace' }}>
+        LOADING BLUEPRINT...
       </span>
     </div>
   </Html>
-);
-
-const EmptyScene: React.FC = () => (
-  <>
-    <ambientLight intensity={0.3} />
-    <Stars radius={100} depth={50} count={3000} factor={4} fade speed={1} />
-    <Html center>
-      <div
-        style={{
-          padding: '32px 48px',
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          textAlign: 'center',
-        }}
-      >
-        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }}>
-          No residence loaded
-        </span>
-      </div>
-    </Html>
-  </>
 );
 
 // ============================================================================
@@ -974,87 +892,23 @@ function getQualitySettings(quality: QualityLevel) {
     case 'low':
       return {
         dpr: [0.5, 1] as [number, number],
-        shadows: false,
         antialias: false,
         postProcessing: false,
-        bloomResolution: 128,
-        ssao: false,
-        ssaoSamples: 8,
-        dof: false,
       };
     case 'medium':
       return {
         dpr: [1, 1.5] as [number, number],
-        shadows: true,
         antialias: true,
         postProcessing: true,
-        bloomResolution: 256,
-        ssao: false,
-        ssaoSamples: 16,
-        dof: false,
       };
     case 'high':
-      return {
-        dpr: [1, 2] as [number, number],
-        shadows: true,
-        antialias: true,
-        postProcessing: true,
-        bloomResolution: 512,
-        ssao: true,
-        ssaoSamples: 32,
-        dof: true,
-      };
     case 'ultra':
       return {
-        dpr: [2, 2] as [number, number],
-        shadows: true,
+        dpr: [1, 2] as [number, number],
         antialias: true,
         postProcessing: true,
-        bloomResolution: 1024,
-        ssao: true,
-        ssaoSamples: 64,
-        dof: true,
       };
   }
-}
-
-function calculateNodeVisibility(
-  node: SceneNode,
-  floorNavigation: ReturnType<typeof useSceneStore>['floorNavigation'],
-  roomNavigation: ReturnType<typeof useSceneStore>['roomNavigation']
-): { visible: boolean; opacity: number } {
-  if (!node.visible) {
-    return { visible: false, opacity: 0 };
-  }
-
-  if (
-    floorNavigation.isolateFloor &&
-    node.type === 'floor' &&
-    node.metadata.floorId !== floorNavigation.currentFloor
-  ) {
-    return { visible: true, opacity: floorNavigation.floorOpacity };
-  }
-
-  if (roomNavigation.currentRoom !== null) {
-    if (node.type === 'room') {
-      if (node.metadata.roomId === roomNavigation.currentRoom) {
-        return { visible: true, opacity: 1 };
-      }
-      return {
-        visible: roomNavigation.showNeighbors,
-        opacity: roomNavigation.neighborOpacity,
-      };
-    }
-  }
-
-  return { visible: true, opacity: 1 };
-}
-
-function getRoomColor(
-  roomId: RoomId,
-  deviceStates: Map<DeviceId, any>
-): string {
-  return '#1a1a2e';
 }
 
 export default DigitalTwin;
