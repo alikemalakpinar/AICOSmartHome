@@ -5,8 +5,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { DigitalTwin } from './3d';
+import { DigitalTwin, useSceneStore } from './3d';
 import { useContextStore, startContextTimeUpdater, startIdleTimeTracker } from './ui/context';
+import { demoResidence } from './data/demo-residence';
 import type { DeviceId, RoomId, FloorId } from './types/core';
 
 // ============================================================================
@@ -317,7 +318,11 @@ async function initializeSystem(): Promise<void> {
   // Simulate initialization delay
   await new Promise(resolve => setTimeout(resolve, 1500));
 
-  console.log('System initialized');
+  // Load demo residence into scene
+  const { loadScene } = useSceneStore.getState();
+  loadScene(demoResidence);
+
+  console.log('System initialized with demo residence:', demoResidence.name);
 }
 
 export default App;
