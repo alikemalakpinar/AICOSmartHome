@@ -1,7 +1,7 @@
 /**
  * Media Control Screen
  *
- * Beautiful media controls with multi-room audio
+ * Harmony and audio zone management
  */
 
 import React, { useState } from 'react';
@@ -15,23 +15,26 @@ import {
   SkipForward,
   Shuffle,
   Repeat,
-  Speaker,
+  Sofa,
+  Bed,
+  UtensilsCrossed,
+  Laptop,
 } from 'lucide-react';
 
 interface AudioZone {
   id: string;
   name: string;
-  icon: string;
+  icon: typeof Sofa;
   isPlaying: boolean;
   volume: number;
   source: string;
 }
 
 const demoZones: AudioZone[] = [
-  { id: 'living', name: 'Living Room', icon: '🛋️', isPlaying: true, volume: 65, source: 'Spotify' },
-  { id: 'bedroom', name: 'Bedroom', icon: '🛏️', isPlaying: false, volume: 30, source: 'Radio' },
-  { id: 'kitchen', name: 'Kitchen', icon: '🍳', isPlaying: true, volume: 45, source: 'Spotify' },
-  { id: 'office', name: 'Office', icon: '💻', isPlaying: false, volume: 50, source: 'AirPlay' },
+  { id: 'living', name: 'Living Room', icon: Sofa, isPlaying: true, volume: 65, source: 'Spotify' },
+  { id: 'bedroom', name: 'Bedroom', icon: Bed, isPlaying: false, volume: 30, source: 'Radio' },
+  { id: 'kitchen', name: 'Kitchen', icon: UtensilsCrossed, isPlaying: true, volume: 45, source: 'Spotify' },
+  { id: 'office', name: 'Office', icon: Laptop, isPlaying: false, volume: 50, source: 'AirPlay' },
 ];
 
 const nowPlaying = {
@@ -70,17 +73,17 @@ export const MediaScreen: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white px-6 py-5 border-b border-slate-100">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-slate-100">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Media</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Control music & entertainment</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Harmony</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Audio orchestration</p>
           </div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-600">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600 border border-violet-100">
             <Music size={12} className="mr-1.5" />
-            {zones.filter(z => z.isPlaying).length} playing
+            {zones.filter(z => z.isPlaying).length} zones active
           </span>
         </div>
       </div>
@@ -94,7 +97,6 @@ export const MediaScreen: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white blur-3xl transform translate-x-1/2 -translate-y-1/2" />
               <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white blur-3xl transform -translate-x-1/2 translate-y-1/2" />
@@ -102,7 +104,6 @@ export const MediaScreen: React.FC = () => {
 
             <div className="relative z-10">
               <div className="flex items-start gap-5 mb-6">
-                {/* Album Art */}
                 <motion.div
                   className="w-28 h-28 rounded-xl flex items-center justify-center bg-white/20 shadow-lg"
                   animate={isPlaying ? { scale: [1, 1.02, 1] } : {}}
@@ -111,7 +112,6 @@ export const MediaScreen: React.FC = () => {
                   <Music size={40} className="text-white" />
                 </motion.div>
 
-                {/* Track Info */}
                 <div className="flex-1 pt-2">
                   <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Now Playing</p>
                   <h2 className="text-2xl font-semibold text-white mb-1">{nowPlaying.title}</h2>
@@ -120,7 +120,6 @@ export const MediaScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
               <div className="mb-6">
                 <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
                   <motion.div
@@ -135,7 +134,6 @@ export const MediaScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Controls */}
               <div className="flex items-center justify-center gap-3">
                 <motion.button
                   className={`p-2.5 rounded-full ${isShuffle ? 'bg-white/20' : ''}`}
@@ -145,10 +143,7 @@ export const MediaScreen: React.FC = () => {
                   <Shuffle size={18} className={isShuffle ? 'text-white' : 'text-white/50'} />
                 </motion.button>
 
-                <motion.button
-                  className="p-2.5 rounded-full"
-                  whileTap={{ scale: 0.9 }}
-                >
+                <motion.button className="p-2.5 rounded-full" whileTap={{ scale: 0.9 }}>
                   <SkipBack size={22} className="text-white" />
                 </motion.button>
 
@@ -165,10 +160,7 @@ export const MediaScreen: React.FC = () => {
                   )}
                 </motion.button>
 
-                <motion.button
-                  className="p-2.5 rounded-full"
-                  whileTap={{ scale: 0.9 }}
-                >
+                <motion.button className="p-2.5 rounded-full" whileTap={{ scale: 0.9 }}>
                   <SkipForward size={22} className="text-white" />
                 </motion.button>
 
@@ -190,7 +182,7 @@ export const MediaScreen: React.FC = () => {
 
           {/* Volume Control */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
@@ -211,7 +203,7 @@ export const MediaScreen: React.FC = () => {
               max="100"
               value={selectedAudioZone.volume}
               onChange={(e) => updateZoneVolume(selectedZone, Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer
+              className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer
                 [&::-webkit-slider-thumb]:appearance-none
                 [&::-webkit-slider-thumb]:w-5
                 [&::-webkit-slider-thumb]:h-5
@@ -226,57 +218,64 @@ export const MediaScreen: React.FC = () => {
 
           {/* Audio Zones */}
           <motion.div
-            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
             <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Audio Zones</h3>
             <div className="grid grid-cols-2 gap-3">
-              {zones.map((zone, index) => (
-                <motion.div
-                  key={zone.id}
-                  className={`p-4 rounded-xl cursor-pointer transition-all ${
-                    selectedZone === zone.id
-                      ? 'ring-2 ring-violet-400 bg-violet-50'
-                      : zone.isPlaying
-                        ? 'bg-slate-50 hover:bg-slate-100'
-                        : 'bg-slate-50/50 hover:bg-slate-100'
-                  }`}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.12 + index * 0.03 }}
-                  onClick={() => setSelectedZone(zone.id)}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xl">{zone.icon}</span>
-                    <motion.button
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              {zones.map((zone, index) => {
+                const Icon = zone.icon;
+                return (
+                  <motion.div
+                    key={zone.id}
+                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                      selectedZone === zone.id
+                        ? 'ring-2 ring-violet-400 bg-violet-50'
+                        : zone.isPlaying
+                          ? 'bg-slate-50 hover:bg-slate-100 border border-slate-100'
+                          : 'bg-slate-50/50 hover:bg-slate-100 border border-slate-50'
+                    }`}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.12 + index * 0.03 }}
+                    onClick={() => setSelectedZone(zone.id)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                         zone.isPlaying ? 'bg-violet-100' : 'bg-slate-100'
-                      }`}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleZonePlay(zone.id);
-                      }}
-                    >
-                      {zone.isPlaying ? (
-                        <Pause size={12} className="text-violet-600" />
-                      ) : (
-                        <Play size={12} className="text-slate-400 ml-0.5" />
-                      )}
-                    </motion.button>
-                  </div>
-                  <p className="text-sm font-medium text-slate-800">{zone.name}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-slate-400">{zone.source}</span>
-                    <div className="flex items-center gap-1">
-                      <Volume2 size={10} className="text-slate-300" />
-                      <span className="text-xs text-slate-400">{zone.volume}%</span>
+                      }`}>
+                        <Icon size={18} className={zone.isPlaying ? 'text-violet-600' : 'text-slate-400'} />
+                      </div>
+                      <motion.button
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          zone.isPlaying ? 'bg-violet-500' : 'bg-slate-200'
+                        }`}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleZonePlay(zone.id);
+                        }}
+                      >
+                        {zone.isPlaying ? (
+                          <Pause size={12} className="text-white" />
+                        ) : (
+                          <Play size={12} className="text-slate-400 ml-0.5" />
+                        )}
+                      </motion.button>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                    <p className="text-sm font-medium text-slate-800">{zone.name}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-slate-400">{zone.source}</span>
+                      <div className="flex items-center gap-1">
+                        <Volume2 size={10} className="text-slate-300" />
+                        <span className="text-xs text-slate-400">{zone.volume}%</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 
